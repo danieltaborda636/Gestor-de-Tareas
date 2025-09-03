@@ -1,15 +1,17 @@
 <?php
-function connection(){
-    $host = "localhost";
-    $user = "root";
-    $pass = "";
 
-    $database = "gestortareas";
+class Database {
+        public static function connect(){
+            if (!defined('DB_SERVER')) define('DB_SERVER', 'localhost');
+            if (!defined('DB_USERNAME')) define("DB_USERNAME", "root");
+            if (!defined('DB_PASSWORD')) define("DB_PASSWORD", '');
+            if (!defined('DB_NAME')) define('DB_NAME', 'gestortareas');
 
-    $connect = mysqli_connect($host, $user, $pass);
+            $conexion = mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
 
-    mysqli_select_db($connect,$database);
-
-    return $connect;
-
-}
+            if (!$conexion) {
+                die("Error de conexión: " . mysqli_connect_error());
+            }
+            return $conexion;
+        }
+    }
