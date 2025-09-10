@@ -1,11 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de tareas</title>
-</head>
-<body>
-    
-</body>
-</html>
+<?php
+// index.php -> punto de entrada
+session_start();
+
+// Si no hay sesión, redirige al login
+if (!isset($_SESSION['user_id'])) {
+    header("Location: views/auth/login.php");
+    exit();
+}
+
+// Si hay sesión, mostramos la lista de tareas
+header("Location: views/tasks/list.php");
+exit();
+
+?>
