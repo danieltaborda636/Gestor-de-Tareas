@@ -1,0 +1,65 @@
+ .perfil-container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .perfil-container img {
+            border-radius: 50%;
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            margin-bottom: 15px;
+        }
+        .perfil-datos p {
+            margin: 5px 0;
+        }
+        .btn {
+            margin: 10px 0;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            border: none;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .form-modificar {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .form-modificar label {
+            display: block;
+            margin-top: 10px;
+        }
+        .form-modificar input[type="text"],
+        .form-modificar input[type="email"],
+        .form-modificar input[type="password"],
+        .form-modificar input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .alert {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .alert.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .alert.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .logout {
+            margin-top: 20px;
+        }
