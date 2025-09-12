@@ -1,20 +1,123 @@
-/* Estilos simples */
+/* Reset y tipografía */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
+  background: #f5f7fa;
+  color: #333;
+  line-height: 1.6;
+  padding: 20px;
 }
 
 h2 {
-    color: #333;
+  margin-bottom: 20px;
+  color: #2c3e50;
+  font-size: 24px;
+  text-align: center;
 }
 
+/* Contenedor */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* Links */
+a {
+  text-decoration: none;
+  color: #3498db;
+  font-weight: bold;
+}
+
+a:hover {
+  color: #21618c;
+}
+
+/* Botones */
+button, .btn {
+  background: #3498db;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button:hover, .btn:hover {
+  background: #21618c;
+}
+
+button.delete {
+  background: #e74c3c;
+}
+
+button.delete:hover {
+  background: #c0392b;
+}
+
+/* Formularios */
 form {
-    display: flex;
-    flex-direction: column;
-    max-width: 300px;
+  margin-top: 15px;
 }
 
-input, button {
-    margin: 5px 0;
-    padding: 10px;
+input[type="text"],
+textarea,
+select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Lista de tareas */
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+ul li {
+  background: #ecf0f1;
+  margin-bottom: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+ul li strong {
+  color: #2c3e50;
+}
+
+/* Mensajes */
+p[style*="color: red"] {
+  background: #fdd;
+  border: 1px solid #e74c3c;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+p[style*="color: green"] {
+  background: #d4efdf;
+  border: 1px solid #27ae60;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
 }

@@ -18,6 +18,7 @@ if (!$tarea) {
 <head>
     <meta charset="UTF-8">
     <title>Editar tarea</title>
+    <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
 <body>
     <h2>Editar tarea</h2>

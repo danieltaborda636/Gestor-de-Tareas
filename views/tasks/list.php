@@ -9,6 +9,7 @@ $tareas = Task::all(); // Obtiene todas las tareas como array asociativo
 <head>
     <meta charset="UTF-8">
     <title>Mis Tareas</title>
+    <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
 <body>
     <h2>Listado de tareas</h2>
