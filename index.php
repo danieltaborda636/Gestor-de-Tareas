@@ -1,6 +1,5 @@
 <?php
 // index.php (perfil)
-// Página de perfil donde el usuario puede ver y modificar su información.
 
 // -----------------
 // 1) INICIAMOS SESIÓN
@@ -19,7 +18,6 @@ if (!isset($_SESSION['user']) && isset($_COOKIE['remember_me'])) {
     $database = new Databasee();
     $db = $database->getConnection();
 
-    // Buscamos el token en la tabla 'sesiones'
     $stmt = $db->prepare("SELECT usuario_id FROM sesiones WHERE token = ? LIMIT 1");
     $stmt->bind_param("s", $token);
     $stmt->execute();
@@ -29,10 +27,9 @@ if (!isset($_SESSION['user']) && isset($_COOKIE['remember_me'])) {
 
     if ($row) {
         $userModel = new User($db);
-        $userData = $userModel->findByEmailOrId($row['usuario_id']); // Método que devuelve usuario por ID
+        $userData = $userModel->findByEmailOrId($row['usuario_id']);
 
         if ($userData) {
-            // Creamos sesión automáticamente
             $_SESSION['usuario_id'] = $userData['id'];
             $_SESSION['user'] = [
                 'id' => $userData['id'],
@@ -62,15 +59,39 @@ $usuario = $_SESSION['user'];
 <head>
     <meta charset="UTF-8">
     <title>Perfil de Usuario</title>
-    <link rel="stylesheet" href="css/perfil.css">
+    <link rel="stylesheet" href="css/perfil.css"> <!-- Tu CSS -->
 </head>
 <body>
-    <div class="perfil-container">
-        <h1>Mi Perfil</h1>
+    <!-- Sidebar (40%) -->
+    <div class="sidebar">
+        <div class="user-info">
+            <!-- Foto -->
+            <img src="<?php echo htmlspecialchars($usuario['foto_perfil']); ?>" alt="Foto de perfil">
+            <!-- Nombre y correo -->
+            <h2><?php echo htmlspecialchars($usuario['nombre']); ?></h2>
+            <p><?php echo htmlspecialchars($usuario['correo']); ?></p>
+        </div>
 
-        <!-- Foto de perfil -->
-        <img src="<?php echo !empty($usuario['foto_perfil']) ? htmlspecialchars($usuario['foto_perfil']) : 'assets/uploads/default.jpeg'; ?>" 
-             alt="Foto de perfil" width="150" height="150" style="border-radius: 50%;">
+        <!-- Botones de navegación -->
+        <div class="nav-buttons">
+            <button onclick="mostrarFormulario()">Editar perfil</button>
+            <a href="tareas.php"><button type="button">Ver tareas</button></a>
+            <a href="etiquetas.php"><button type="button">Ver etiquetas</button></a>
+            <a href="subtareas.php"><button type="button">Ver subtareas</button></a>
+            <a href="configuracion.php"><button type="button">Configuración</button></a>
+        </div>
+
+        <!-- Logout -->
+        <div class="logout">
+            <form action="logout.php" method="POST">
+                <button type="submit">Cerrar sesión</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Contenido (60%) -->
+    <div class="content">
+        <h1>Mi Perfil</h1>
 
         <!-- Mensajes flash -->
         <?php if (isset($_SESSION['flash'])): ?>
@@ -80,16 +101,7 @@ $usuario = $_SESSION['user'];
             <?php unset($_SESSION['flash']); ?>
         <?php endif; ?>
 
-        <!-- Datos del usuario -->
-        <div class="perfil-datos">
-            <p><strong>Nombre:</strong> <?php echo htmlspecialchars($usuario['nombre']); ?></p>
-            <p><strong>Correo:</strong> <?php echo htmlspecialchars($usuario['correo']); ?></p>
-        </div>
-
-        <!-- Botón para mostrar formulario -->
-        <button class="btn" onclick="mostrarFormulario()">Modificar usuario</button>
-
-        <!-- Formulario oculto para modificar datos -->
+        <!-- Formulario oculto (modificar perfil) -->
         <form class="form-modificar" id="formModificar" 
               method="POST" action="controllers/UserController.php?action=update" 
               enctype="multipart/form-data" style="display:none;">
@@ -107,19 +119,12 @@ $usuario = $_SESSION['user'];
             <label>Foto de perfil:</label>
             <input type="file" name="foto_perfil" accept="image/*">
 
-            <button type="submit" class="btn">Guardar cambios</button>
+            <button type="submit" class="submit-btn">Guardar cambios</button>
         </form>
-
-        <!-- Botón de logout -->
-        <div class="logout">
-            <form action="logout.php" method="POST">
-                <button type="submit" class="btn">Cerrar sesión</button>
-            </form>
-        </div>
     </div>
 
     <script>
-        // Mostrar/ocultar formulario de modificación
+        // Mostrar/ocultar formulario
         function mostrarFormulario() {
             const form = document.getElementById("formModificar");
             form.style.display = (form.style.display === "none" || form.style.display === "") ? "block" : "none";

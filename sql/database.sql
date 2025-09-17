@@ -93,3 +93,13 @@ CREATE TABLE audit_logs (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
+
+CREATE TABLE etiquetas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre_etiqueta VARCHAR(100) NOT NULL UNIQUE,
+    descripcion TEXT NULL,
+    color VARCHAR(20) DEFAULT '#000000', -- hex de color
+    estado ENUM('activo','inactivo') DEFAULT 'activo',
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
