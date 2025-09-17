@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . "/../config/Database.php"; // Incluye la clase Database
+require_once __DIR__ . "/../config/database.php"; // Incluye la clase Database
 session_start();
 //se crera la clase de la etiqueta
 class Etiqueta
@@ -9,7 +9,7 @@ class Etiqueta
 
     public function __construct()
     {
-        $this->conn = DAtabase ::connect();
+        $this->conn = Database::connect();
     }
 
     public function CrearEtiqueta($nombre_etiqueta, $color)
@@ -18,7 +18,7 @@ class Etiqueta
     $color = trim($color);
 
     // Verificar existencia
-    $check = $this->conn->prepare("SELECT id FROM etiqueta WHERE nombre_etiqueta = ? LIMIT 1");
+    $check = $this->conn->prepare("SELECT id FROM etiquetas WHERE nombre_etiqueta = ? LIMIT 1");
     $check->bind_param("s", $nombre_etiqueta);
     $check->execute();
     $result = $check->get_result();
@@ -31,7 +31,7 @@ class Etiqueta
     $check->close();
 
     // Insertar si no existe
-    $sentencia = $this->conn->prepare("INSERT INTO etiqueta (nombre_etiqueta, color) VALUES (?, ?)");
+    $sentencia = $this->conn->prepare("INSERT INTO etiquetas (nombre_etiqueta, color) VALUES (?, ?)");
     $sentencia->bind_param("ss", $nombre_etiqueta, $color);
 
     if ($sentencia->execute()) {
@@ -50,7 +50,7 @@ class Etiqueta
     {
 
          // Preparas una consulta preparada para buscar si existe una fila con ese nombre
-        $check = $this->conn->prepare("SELECT id FROM etiqueta WHERE nombre_etiqueta = ? LIMIT 1");
+        $check = $this->conn->prepare("SELECT id FROM etiquetas WHERE nombre_etiqueta = ? LIMIT 1");
 
         // Asociar el valor que llega ($nombre_etiqueta) al placeholder (?) de la consulta
         $check->bind_param("s", $nombre_etiqueta);
@@ -76,8 +76,8 @@ class Etiqueta
 
         // al no existir la etiqueta se modificara  en la base de datos
 
-        $sentencia = $this->conn->prepare("UPDATE etiqueta SET nombre_etiqueta = ?");
-        $sentencia->bind_param("s", $nombre_etiqueta);
+        $sentencia = $this->conn->prepare("UPDATE etiquetas SET nombre_etiqueta = ? WHERE id = ?");
+        $sentencia->bind_param("si", $nombre_etiqueta, $id);
 
         if ($sentencia->execute()) {
             //ENVIAR MENSAJE DE EXITO
@@ -91,7 +91,7 @@ class Etiqueta
     //se hace la sentencia para eliminar la Etiqueta
     public function DeleteEtiqueta($id)
     {
-        $sentencia = $this->conn->prepare("DELETE FROM etiqueta WHERE id = ?");
+        $sentencia = $this->conn->prepare("DELETE FROM etiquetas WHERE id = ?");
         $sentencia->bind_param("i", $id);
 
         if ($sentencia->execute()) {
