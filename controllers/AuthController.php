@@ -25,7 +25,7 @@ $action = isset($_GET['action']) ? $_GET['action'] : '';
 // --- 5) FUNCIONES AUXILIARES ---
 // Redirige a la home
 function redirect_home() {
-    header('Location: ../index.php');
+    header('Location: ../inicio.php');
     exit;
 }
 
