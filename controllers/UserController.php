@@ -70,7 +70,7 @@ class UserController {
         }
 
         // --- 7) Redirigir de vuelta al perfil ---
-        header("Location: ../index.php");
+        header("Location: ../inicio.php");
         exit();
     }
 }
