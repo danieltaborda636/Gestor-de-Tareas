@@ -1,107 +1,150 @@
 <?php
-require_once __DIR__ . "/../config/database.php"; // Incluye la clase Database
+// models/Etiqueta.php
+require_once __DIR__ . "/../config/Database.php";
 session_start();
-//se crera la clase de la etiqueta
+
 class Etiqueta
 {
-
     private $conn;
+    private $table = "etiquetas";
 
-    public function __construct()
+    // Acepta opcionalmente una conexión PDO (útil para testing); si no, crea una nueva
+    public function __construct($pdo = null)
     {
-        $this->conn = Database::connect();
+        if ($pdo instanceof PDO) {
+            $this->conn = $pdo;
+        } else {
+            $database = new Databasee();
+            $this->conn = $database->getConnection();
+        }
     }
 
+    // Devuelve todas las etiquetas activas
+    public function all()
+    {
+        $sql = "SELECT * FROM {$this->table} WHERE estado = 'activo' ORDER BY nombre_etiqueta";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Obtener etiquetas asociadas a una tarea
+    public function getByTask($task_id)
+    {
+        $sql = "SELECT e.* 
+                FROM etiquetas e
+                INNER JOIN task_labels tl ON e.id = tl.etiqueta_id
+                WHERE tl.task_id = :task_id
+                ORDER BY e.nombre_etiqueta";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([":task_id" => $task_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Reemplaza las etiquetas de una tarea.
+     * $labels debe ser un array de ids (enteros). 
+     * Devuelve true/false.
+     */
+    public function setForTask($task_id, $labels = [])
+    {
+        try {
+            $this->conn->beginTransaction();
+
+            // Eliminar etiquetas actuales
+            $del = $this->conn->prepare("DELETE FROM task_labels WHERE task_id = :task_id");
+            $del->execute([":task_id" => $task_id]);
+
+            // Insertar nuevas (si las hay)
+            if (!empty($labels) && is_array($labels)) {
+                $ins = $this->conn->prepare("INSERT INTO task_labels (task_id, etiqueta_id) VALUES (:task_id, :etiqueta_id)");
+                foreach ($labels as $label_id) {
+                    $label_id = (int)$label_id;
+                    if ($label_id <= 0) continue; // prevenir inserts inválidos
+                    $ins->execute([":task_id" => $task_id, ":etiqueta_id" => $label_id]);
+                }
+            }
+
+            $this->conn->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->conn->rollBack();
+            $_SESSION['error'] = "Error al guardar etiquetas: " . $e->getMessage();
+            return false;
+        }
+    }
+
+    // Crear nueva etiqueta (mantengo tu API original)
     public function CrearEtiqueta($nombre_etiqueta, $color)
     {
-    $nombre_etiqueta = trim($nombre_etiqueta);
-    $color = trim($color);
+        $nombre_etiqueta = trim($nombre_etiqueta);
+        $color = trim($color);
 
-    // Verificar existencia
-    $check = $this->conn->prepare("SELECT id FROM etiquetas WHERE nombre_etiqueta = ? LIMIT 1");
-    $check->bind_param("s", $nombre_etiqueta);
-    $check->execute();
-    $result = $check->get_result();
+        // Verificar existencia
+        $check = $this->conn->prepare("SELECT id FROM {$this->table} WHERE nombre_etiqueta = :nombre LIMIT 1");
+        $check->execute([":nombre" => $nombre_etiqueta]);
+        $result = $check->fetch(PDO::FETCH_ASSOC);
 
-    if ($result && $result->num_rows > 0) {
-        $_SESSION["error"] = "La etiqueta '$nombre_etiqueta' ya existe";
-        $check->close();
-        return;
-    }
-    $check->close();
-
-    // Insertar si no existe
-    $sentencia = $this->conn->prepare("INSERT INTO etiquetas (nombre_etiqueta, color) VALUES (?, ?)");
-    $sentencia->bind_param("ss", $nombre_etiqueta, $color);
-
-    if ($sentencia->execute()) {
-        $_SESSION["mensaje"] = "Etiqueta creada con éxito";
-    } else {
-        $_SESSION["error"] = "Error al crear la etiqueta";
-    }
-    $sentencia->close();
-}
-
-
-
-
-    //creamos la sentencia para modificar la Etiqueta
-    public function UpdateEtiqueta($nombre_etiqueta)
-    {
-
-         // Preparas una consulta preparada para buscar si existe una fila con ese nombre
-        $check = $this->conn->prepare("SELECT id FROM etiquetas WHERE nombre_etiqueta = ? LIMIT 1");
-
-        // Asociar el valor que llega ($nombre_etiqueta) al placeholder (?) de la consulta
-        $check->bind_param("s", $nombre_etiqueta);
-
-        // Ejecutar la consulta en la base de datos
-        $check->execute();
-
-        // Obtener el conjunto de resultados (mysqli_result)
-        $result = $check->get_result();
-
-        // Si num_rows > 0 significa que hay al menos una fila: la etiqueta ya existe
-        if ($result->num_rows > 0) {
-        // Guardas en sesión un mensaje de error que luego puedes mostrar en la vista
-        $_SESSION["error"] = "La etiqueta '$nombre_etiqueta' ya existe";
-        // Cierras el statement para liberar recursos
-        $check->close();
-        // Terminas la función (no se hace el INSERT)
-        return;
+        if ($result) {
+            $_SESSION["error"] = "La etiqueta '{$nombre_etiqueta}' ya existe";
+            return false;
         }
 
-        // Si llegas aquí no existe la etiqueta (no se encontró), cierras el statement
-        $check->close();
+        // Insertar
+        $sentencia = $this->conn->prepare("INSERT INTO {$this->table} (nombre_etiqueta, color) VALUES (:nombre, :color)");
+        $ok = $sentencia->execute([":nombre" => $nombre_etiqueta, ":color" => $color]);
 
-        // al no existir la etiqueta se modificara  en la base de datos
-
-        $sentencia = $this->conn->prepare("UPDATE etiquetas SET nombre_etiqueta = ? WHERE id = ?");
-        $sentencia->bind_param("si", $nombre_etiqueta, $id);
-
-        if ($sentencia->execute()) {
-            //ENVIAR MENSAJE DE EXITO
-            $_SESSION["mensaje"] = "Etiqueta actualizada con exito";
+        if ($ok) {
+            $_SESSION["mensaje"] = "Etiqueta creada con éxito";
+            return true;
         } else {
-            $_SESSION["error"] = "Error al actualizar la Etiqueta";
+            $_SESSION["error"] = "Error al crear la etiqueta";
+            return false;
         }
-         $sentencia->close();
     }
 
-    //se hace la sentencia para eliminar la Etiqueta
+    // Actualizar etiqueta (recibe id y nombre nuevo)
+    public function UpdateEtiqueta($id, $nombre_etiqueta)
+    {
+        $id = (int)$id;
+        $nombre_etiqueta = trim($nombre_etiqueta);
+
+        // Verificar si ya existe otra etiqueta con ese nombre
+        $check = $this->conn->prepare("SELECT id FROM {$this->table} WHERE nombre_etiqueta = :nombre AND id != :id LIMIT 1");
+        $check->execute([":nombre" => $nombre_etiqueta, ":id" => $id]);
+        $result = $check->fetch(PDO::FETCH_ASSOC);
+
+        if ($result) {
+            $_SESSION["error"] = "La etiqueta '{$nombre_etiqueta}' ya existe";
+            return false;
+        }
+
+        // Actualizar
+        $sentencia = $this->conn->prepare("UPDATE {$this->table} SET nombre_etiqueta = :nombre WHERE id = :id");
+        $ok = $sentencia->execute([":nombre" => $nombre_etiqueta, ":id" => $id]);
+
+        if ($ok) {
+            $_SESSION["mensaje"] = "Etiqueta actualizada con éxito";
+            return true;
+        } else {
+            $_SESSION["error"] = "Error al actualizar la etiqueta";
+            return false;
+        }
+    }
+
+    // Eliminar etiqueta por id
     public function DeleteEtiqueta($id)
     {
-        $sentencia = $this->conn->prepare("DELETE FROM etiquetas WHERE id = ?");
-        $sentencia->bind_param("i", $id);
+        $id = (int)$id;
+        $sentencia = $this->conn->prepare("DELETE FROM {$this->table} WHERE id = :id");
+        $ok = $sentencia->execute([":id" => $id]);
 
-        if ($sentencia->execute()) {
-            //ENVIAR MENSAJE DE EXITO
-            $_SESSION["mensaje"] = "etiqueta eliminada con exito";
+        if ($ok) {
+            $_SESSION["mensaje"] = "Etiqueta eliminada con éxito";
+            return true;
         } else {
-            $_SESSION["mensaje"] = "Error al eliminar la etiqueta";
+            $_SESSION["error"] = "Error al eliminar la etiqueta";
+            return false;
         }
     }
-
 }
-
-?>

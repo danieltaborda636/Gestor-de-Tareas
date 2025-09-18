@@ -1,72 +1,78 @@
 <?php
-// models/User.php
-// Modelo que representa la tabla "usuarios"
+// models/User.php (antes usermodelo.php)
+// Modelo que representa la tabla "usuarios" usando PDO
 
 class User {
-    // --- 1) Atributos ---
-    private $conn;          // Conexión a la base de datos
-    private $table = "usuarios"; // Nombre de la tabla en la BD
+    private $conn;
+    private $table = "usuarios";
 
-    // --- 2) Constructor ---
-    // Recibe la conexión mysqli desde Database.php
     public function __construct($db) {
-        $this->conn = $db;
+        $this->conn = $db; // $db es un objeto PDO
     }
 
-    // --- 3) Obtener un usuario por su ID ---
+    // Obtener usuario por ID
     public function getUserById($id) {
-        $sql = "SELECT * FROM " . $this->table . " WHERE id = ?";
+        $sql = "SELECT * FROM {$this->table} WHERE id = :id";
         $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-
-        return $stmt->get_result()->fetch_assoc();
+        $stmt->execute([":id" => $id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // --- 4) Actualizar usuario ---
-    /**
-     * @param int $id                ID del usuario
-     * @param string $nombre         Nuevo nombre
-     * @param string $correo         Nuevo correo
-     * @param string|null $contrasena Nueva contraseña (si no cambia, null)
-     * @param string|null $fotoPerfil Nueva ruta de foto (si no cambia, null)
-     * 
-     * @return bool true si la actualización fue exitosa, false en caso contrario
-     */
+    // Obtener usuario por correo
+    public function getUserByEmail($correo) {
+        $sql = "SELECT * FROM {$this->table} WHERE correo = :correo";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([":correo" => $correo]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // Crear usuario
+    public function createUser($nombre, $correo, $contrasena, $fotoPerfil = null) {
+        $hash = password_hash($contrasena, PASSWORD_BCRYPT);
+
+        $sql = "INSERT INTO {$this->table} (nombre_usuario, correo, contrasena, foto_perfil)
+                VALUES (:nombre, :correo, :contrasena, :foto)";
+        $stmt = $this->conn->prepare($sql);
+
+        return $stmt->execute([
+            ":nombre" => $nombre,
+            ":correo" => $correo,
+            ":contrasena" => $hash,
+            ":foto" => $fotoPerfil ?? 'assets/uploads/default.jpeg'
+        ]);
+    }
+
+    // Actualizar usuario
     public function updateUser($id, $nombre, $correo, $contrasena = null, $fotoPerfil = null) {
-        // --- Construcción dinámica de la query ---
-        $query = "UPDATE " . $this->table . " SET nombre_usuario = ?, correo = ?";
-        $params = [$nombre, $correo];
-        $types = "ss"; // dos strings: nombre y correo
+        $query = "UPDATE {$this->table} SET nombre_usuario = :nombre, correo = :correo";
+        $params = [
+            ":nombre" => $nombre,
+            ":correo" => $correo,
+            ":id" => $id
+        ];
 
-        // Si el usuario cambió la contraseña
         if (!empty($contrasena)) {
-            $hash = password_hash($contrasena, PASSWORD_BCRYPT); // siempre se guarda hasheada
-            $query .= ", contrasena = ?";
-            $params[] = $hash;
-            $types .= "s";
+            $query .= ", contrasena = :contrasena";
+            $params[":contrasena"] = password_hash($contrasena, PASSWORD_BCRYPT);
         }
 
-        // Si el usuario subió una nueva foto
         if (!empty($fotoPerfil)) {
-            $query .= ", foto_perfil = ?";
-            $params[] = $fotoPerfil;
-            $types .= "s";
+            $query .= ", foto_perfil = :foto";
+            $params[":foto"] = $fotoPerfil;
         }
 
-        // Siempre actualizamos el registro por ID
-        $query .= " WHERE id = ?";
-        $params[] = $id;
-        $types .= "i"; // entero
+        $query .= " WHERE id = :id";
 
-        // --- Ejecutamos la query preparada ---
         $stmt = $this->conn->prepare($query);
-        if (!$stmt) {
-            return false; // fallo en la preparación
+        return $stmt->execute($params);
+    }
+
+    // Verificar credenciales
+    public function verifyCredentials($correo, $password) {
+        $user = $this->getUserByEmail($correo);
+        if ($user && password_verify($password, $user['contrasena'])) {
+            return $user;
         }
-
-        $stmt->bind_param($types, ...$params);
-
-        return $stmt->execute(); // true si se ejecutó, false si hubo error
+        return false;
     }
 }

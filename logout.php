@@ -1,23 +1,36 @@
 <?php
 // logout.php
-// Este archivo cierra la sesión del usuario de forma segura y lo redirige al login.
+// Cierra la sesión del usuario de forma segura, borra token "remember_me" y redirige al login.
 
-// --- 1) Iniciamos la sesión ---
-// Necesario para acceder a $_SESSION y poder destruirla.
 session_start();
 
-// --- 2) Eliminamos todas las variables de sesión ---
-// Esto limpia la variable global $_SESSION.
+// --- Si existe cookie "remember_me", eliminarla de la BD ---
+if (isset($_COOKIE['remember_me'])) {
+    require_once __DIR__ . '/config/Database.php';
+    $database = new Databasee();
+    $db = $database->getConnection();
+
+    $token = $_COOKIE['remember_me'];
+
+    // Borrar token de la tabla sesiones
+    $sql = "DELETE FROM tokens WHERE token = :token";
+    $stmt = $db->prepare($sql);
+    $stmt->execute([":token" => $token]);
+
+    // Borrar cookie en el navegador
+    setcookie("remember_me", "", time() - 3600, "/");
+}
+
+// --- Eliminar variables de sesión ---
 $_SESSION = [];
 
-// --- 3) Borramos la cookie de sesión (si existe) ---
-// Esto asegura que el navegador elimine el identificador de sesión.
+// --- Borrar cookie de sesión (PHPSESSID) ---
 if (ini_get("session.use_cookies")) {
     $params = session_get_cookie_params();
     setcookie(
-        session_name(),     // nombre de la cookie
-        '',                 // valor vacío
-        time() - 42000,     // fecha en el pasado => expira
+        session_name(),
+        '',
+        time() - 42000,
         $params["path"],
         $params["domain"],
         $params["secure"],
@@ -25,11 +38,9 @@ if (ini_get("session.use_cookies")) {
     );
 }
 
-// --- 4) Finalmente destruimos la sesión ---
-// Esto elimina completamente la sesión en el servidor.
+// --- Destruir la sesión ---
 session_destroy();
 
-// --- 5) Redirigimos al login ---
-// Cambia "login.php" por la ruta real de tu archivo de login.
+// --- Redirigir al login ---
 header("Location: login.php");
 exit;

@@ -1,29 +1,28 @@
 <?php
 session_start();
 require_once __DIR__ . '/config/Database.php';
+require_once __DIR__ . '/models/User.php';
 
 if (!isset($_SESSION['user']) && isset($_COOKIE['remember_me'])) {
     $token = $_COOKIE['remember_me'];
 
     $database = new Databasee();
-    $db = $database->getConnection();
+    $db = $database->getConnection(); // esto es PDO
 
-    $stmt = $db->prepare("SELECT usuario_id FROM sesiones WHERE token = ? LIMIT 1");
-    $stmt->bind_param("s", $token);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $row = $result->fetch_assoc();
-    $stmt->close();
+    // Buscar si existe el token en la tabla
+    $stmt = $db->prepare("SELECT user_id FROM tokens WHERE token = :token LIMIT 1");
+    $stmt->execute([":token" => $token]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($row) {
         $userModel = new User($db);
-        $userData = $userModel->findByEmailOrId($row['usuario_id']);
+        $userData = $userModel->getUserById($row['user_id']); // usamos getById en lugar de findByEmailOrId
 
         if ($userData) {
             $_SESSION['usuario_id'] = $userData['id'];
             $_SESSION['user'] = [
                 'id' => $userData['id'],
-                'nombre' => $userData['nombre_usuario'] ?? $userData['nombre'],
+                'nombre' => $userData['nombre_usuario'],
                 'correo' => $userData['correo'],
                 'foto_perfil' => !empty($userData['foto_perfil']) ? $userData['foto_perfil'] : 'assets/uploads/default.jpeg'
             ];
@@ -37,6 +36,7 @@ if (!isset($_SESSION['user'])) {
 }
 $usuario = $_SESSION['user'];
 ?>
+
 
 <!DOCTYPE html>
 <html lang="es">

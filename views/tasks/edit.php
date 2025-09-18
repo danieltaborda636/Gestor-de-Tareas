@@ -1,18 +1,35 @@
 <?php
-require_once __DIR__ . "/../../models/Task.php"; 
+require_once __DIR__ . "/../../config/Database.php";
+require_once __DIR__ . "/../../models/Task.php";
+require_once __DIR__ . "/../../models/Project.php";
+require_once __DIR__ . "/../../models/User.php";
+require_once __DIR__ . "/../../models/Etiqueta.php";
 
+$database = new Databasee();
+$db = $database->getConnection();
+$taskModel = new Task($db);
+$etiquetaModel = new Etiqueta($db);
+
+// Validar ID
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     header("Location: list.php?error=ID inválido");
     exit();
 }
 
-$tarea = Task::buscar($_GET['id']); // Busca la tarea por id 
+$id = (int)$_GET['id'];
+$tarea = $taskModel->find($id);
 if (!$tarea) {
     header("Location: list.php?error=Tarea no encontrada");
     exit();
 }
-?>
 
+// Obtener proyectos, usuarios y etiquetas
+$projects = $db->query("SELECT id, name FROM projects ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
+$users = $db->query("SELECT id, nombre_usuario FROM usuarios ORDER BY nombre_usuario")->fetchAll(PDO::FETCH_ASSOC);
+$labels = $etiquetaModel->all();
+$taskLabels = $etiquetaModel->getByTask($id);
+$selected = array_column($taskLabels, 'id'); // array de ids seleccionadas
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -23,18 +40,47 @@ if (!$tarea) {
 <body>
     <h2>Editar tarea</h2>
 
-    <!-- Formulario que envía por POST al controlador con action=update -->
     <form method="POST" action="../../controllers/TaskController.php?action=update">
-        <!-- Campo oculto con el id de la tarea -->
-        <input type="hidden" name="id" value="<?= $tarea['id'] ?>">
+        <input type="hidden" name="id" value="<?= htmlspecialchars($tarea['id']) ?>">
 
-        <!-- Título (se muestra el valor actual escapado con htmlspecialchars) -->
         <input type="text" name="title" value="<?= htmlspecialchars($tarea['title']) ?>" required><br>
 
-        <!-- Descripción -->
         <textarea name="description"><?= htmlspecialchars($tarea['description']) ?></textarea><br>
 
-        <!-- Prioridad: se marca el selected según el valor actual -->
+        <label>Proyecto:</label>
+        <select name="project_id">
+            <option value="">-- Ninguno --</option>
+            <?php foreach ($projects as $p): ?>
+                <option value="<?= htmlspecialchars($p['id']) ?>" <?= ($tarea['project_id'] == $p['id']) ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($p['name']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select><br>
+
+        <label>Etiquetas:</label><br>
+        <?php if (!empty($labels)): ?>
+            <?php foreach ($labels as $l): ?>
+                <label>
+                    <input type="checkbox" name="labels[]" value="<?= htmlspecialchars($l['id']) ?>"
+                        <?= in_array($l['id'], $selected) ? 'checked' : '' ?>>
+                    <span style="color: <?= htmlspecialchars($l['color']) ?>;">■</span>
+                    <?= htmlspecialchars($l['nombre_etiqueta']) ?>
+                </label><br>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <p>No hay etiquetas disponibles.</p>
+        <?php endif; ?>
+
+        <label>Asignar a:</label>
+        <select name="assignee_id">
+            <option value="">-- Nadie --</option>
+            <?php foreach ($users as $u): ?>
+                <option value="<?= htmlspecialchars($u['id']) ?>" <?= ($tarea['assignee_id'] == $u['id']) ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($u['nombre_usuario']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select><br>
+
         <label>Prioridad:</label>
         <select name="priority">
             <option value="low" <?= $tarea['priority'] == 'low' ? 'selected' : '' ?>>Baja</option>
@@ -43,7 +89,6 @@ if (!$tarea) {
             <option value="urgent" <?= $tarea['priority'] == 'urgent' ? 'selected' : '' ?>>Urgente</option>
         </select><br>
 
-        <!-- Estado: idem -->
         <label>Estado:</label>
         <select name="status">
             <option value="todo" <?= $tarea['status'] == 'todo' ? 'selected' : '' ?>>Por hacer</option>
@@ -52,7 +97,20 @@ if (!$tarea) {
             <option value="archived" <?= $tarea['status'] == 'archived' ? 'selected' : '' ?>>Archivado</option>
         </select><br>
 
-        <!-- Botón para actualizar -->
+        <label>Fecha inicio:</label>
+        <input type="date" name="start_date" value="<?= !empty($tarea['start_date']) ? date('Y-m-d', strtotime($tarea['start_date'])) : '' ?>"><br>
+
+        <label>Fecha vencimiento:</label>
+        <input type="date" name="due_date" value="<?= !empty($tarea['due_date']) ? date('Y-m-d', strtotime($tarea['due_date'])) : '' ?>"><br>
+
+        <label>Recurrencia:</label>
+        <select name="recurrence_rule">
+            <option value="none" <?= $tarea['recurrence_rule'] == 'none' ? 'selected' : '' ?>>Ninguna</option>
+            <option value="daily" <?= $tarea['recurrence_rule'] == 'daily' ? 'selected' : '' ?>>Diaria</option>
+            <option value="weekly" <?= $tarea['recurrence_rule'] == 'weekly' ? 'selected' : '' ?>>Semanal</option>
+            <option value="monthly" <?= $tarea['recurrence_rule'] == 'monthly' ? 'selected' : '' ?>>Mensual</option>
+        </select><br>
+
         <button type="submit">Actualizar</button>
     </form>
 

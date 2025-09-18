@@ -1,38 +1,102 @@
 <?php
-require_once __DIR__ . "/../models/Task.php"; // Incluye el modelo Task
+// controllers/TaskController.php
+require_once __DIR__ . '/../config/Database.php';
+require_once __DIR__ . '/../models/Task.php';
+require_once __DIR__ . '/../models/Etiqueta.php';
 
-// Comprueba si se pasó el parámetro 'action' por GET
-if (isset($_GET['action'])) {
-    $action = $_GET['action']; // Acción a realizar: create, update, delete
+session_start();
 
-    switch ($action) {
-        case "create":
-            // Si la acción es 'create' se espera el metodo POST con 'title'
-            if (!empty($_POST['title'])) {
-                Task::create($_POST['title'], $_POST['description'], 1, $_POST['priority'], $_POST['status']); // Llama a Task::create con los datos recibidos (creator_id=1 por simplicidad)
-            }
-
-            header("Location: ../views/tasks/list.php"); // Redirige al listado
-            break;
-
-        case "update":
-            // Si la acción es 'update' se espera el metodo POST con 'id'
-            if (!empty($_POST['id'])) {
-                Task::update($_POST['id'], $_POST['title'], $_POST['description'], $_POST['priority'], $_POST['status']); // Llama a Task::update con los datos recibidos
-            }
-            
-            header("Location: ../views/tasks/list.php"); // Redirige al listado
-            break;
-
-        case "delete":
-            // Para eliminar se espera un id en GET (ej: ?action=delete&id=3)
-            if (isset($_GET['id'])) {
-                Task::delete($_GET['id']); // Llama al método delete
-            }
-            
-            header("Location: ../views/tasks/list.php"); // Redirige al listado
-            break;
-    }
+// Verificar si el usuario está autenticado
+if (!isset($_SESSION['user'])) {
+    header("Location: ../login.php");
+    exit();
 }
 
-?>
+// Conexión PDO
+$database = new Databasee();
+$db = $database->getConnection();
+$taskModel = new Task($db);
+$etiquetaModel = new Etiqueta(); // ya conecta internamente
+
+// Acción recibida por GET
+$action = isset($_GET['action']) ? $_GET['action'] : '';
+
+switch ($action) {
+    case "create":
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['title'])) {
+            $data = [
+                "title"          => $_POST['title'],
+                "description"    => $_POST['description'] ?? '',
+                "creator_id"     => $_SESSION['user']['id'], // usuario logueado
+                "assignee_id"    => $_POST['assignee_id'] ?? null,
+                "project_id"     => $_POST['project_id'] ?? null,
+                "parent_task_id" => $_POST['parent_task_id'] ?? null,
+                "status"         => $_POST['status'] ?? 'todo',
+                "priority"       => $_POST['priority'] ?? 'medium',
+                "start_date"     => !empty($_POST['start_date']) ? $_POST['start_date'] : null,
+                "due_date"       => !empty($_POST['due_date']) ? $_POST['due_date'] : null,
+                "recurrence_rule"=> $_POST['recurrence_rule'] ?? 'none',
+                "position"       => $_POST['position'] ?? 0
+            ];
+
+            if ($taskModel->create($data)) {
+                $task_id = $db->lastInsertId();
+
+                // Guardar etiquetas (si se mandaron)
+                $labels = $_POST['labels'] ?? [];
+                if (!empty($labels)) {
+                    $etiquetaModel->setForTask($task_id, $labels);
+                }
+
+                $_SESSION['mensaje'] = "✅ Tarea creada con éxito";
+            } else {
+                $_SESSION['error'] = "❌ Error al crear la tarea";
+            }
+        }
+        header("Location: ../views/tasks/list.php");
+        exit();
+
+    case "update":
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['id'])) {
+            $data = [
+                "title"          => $_POST['title'],
+                "description"    => $_POST['description'] ?? '',
+                "assignee_id"    => $_POST['assignee_id'] ?? null,
+                "project_id"     => $_POST['project_id'] ?? null,
+                "parent_task_id" => $_POST['parent_task_id'] ?? null,
+                "status"         => $_POST['status'],
+                "priority"       => $_POST['priority'],
+                "start_date"     => !empty($_POST['start_date']) ? $_POST['start_date'] : null,
+                "due_date"       => !empty($_POST['due_date']) ? $_POST['due_date'] : null,
+                "recurrence_rule"=> $_POST['recurrence_rule'] ?? 'none',
+                "position"       => $_POST['position'] ?? 0
+            ];
+
+            if ($taskModel->update($_POST['id'], $data)) {
+                // Guardar etiquetas (si se mandaron)
+                $labels = $_POST['labels'] ?? [];
+                $etiquetaModel->setForTask($_POST['id'], $labels);
+
+                $_SESSION['mensaje'] = "✅ Tarea actualizada con éxito";
+            } else {
+                $_SESSION['error'] = "❌ Error al actualizar la tarea";
+            }
+        }
+        header("Location: ../views/tasks/list.php");
+        exit();
+
+    case "delete":
+        if (isset($_GET['id']) && is_numeric($_GET['id'])) {
+            if ($taskModel->delete($_GET['id'])) {
+                $_SESSION['mensaje'] = "✅ Tarea eliminada con éxito";
+            } else {
+                $_SESSION['error'] = "❌ Error al eliminar la tarea";
+            }
+        }
+        header("Location: ../views/tasks/list.php");
+        exit();
+
+    default:
+        header("Location: ../views/tasks/list.php");
+        exit();
+}

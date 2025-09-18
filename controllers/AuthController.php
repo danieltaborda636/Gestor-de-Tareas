@@ -1,55 +1,42 @@
 <?php
 // controllers/AuthController.php
-// Controlador para manejar registro, login, sesión y "recordarme" con tokens.
+// Controlador para manejar registro, login, sesión y "recordarme" con tokens (PDO).
 
-// --- 1) INICIAMOS LA SESIÓN ---
-session_start(); // Necesario para usar $_SESSION y mensajes flash
+session_start(); // Necesario para $_SESSION
 
-// --- 2) INCLUIMOS DEPENDENCIAS ---
-require_once __DIR__ . '/../config/database.php';
+// --- Dependencias ---
+require_once __DIR__ . '/../config/Database.php';
 require_once __DIR__ . '/../models/User.php';
 
-// --- 3) CREAMOS LA CONEXIÓN Y EL MODELO ---
-$database = new Databasee();       // Instanciamos Database
-$db = $database->getConnection(); // Obtenemos conexión mysqli
+// --- Conexión a BD ---
+$database = new Databasee();
+$db = $database->getConnection(); // devuelve PDO
+$userModel = new User($db);
 
-try {
-    $userModel = new User($db);  // Intentamos pasar la conexión al modelo
-} catch (ArgumentCountError $e) {
-    $userModel = new User();     // Si el constructor no acepta parámetros
-}
-
-// --- 4) LECTURA DEL ACTION ---
-$action = isset($_GET['action']) ? $_GET['action'] : '';
-
-// --- 5) FUNCIONES AUXILIARES ---
-// Redirige a la home
+// --- Funciones auxiliares ---
 function redirect_home() {
     header('Location: ../inicio.php');
     exit;
 }
-
-// Redirige al login
 function redirect_login() {
     header('Location: ../login.php');
     exit;
 }
-
-// Establece un mensaje flash
 function set_flash($type, $message) {
     $_SESSION['flash'] = ['type' => $type, 'message' => $message];
 }
 
+// --- Determinar acción ---
+$action = isset($_GET['action']) ? $_GET['action'] : '';
+
 // =====================================================
-// --- 6) GESTIÓN DEL REGISTRO DE USUARIO ---
+// --- REGISTRO DE USUARIO ---
 // =====================================================
 if ($action === 'register') {
-
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') redirect_login();
 
-    // Recogemos datos del formulario
-    $nombre = isset($_POST['userName']) ? trim($_POST['userName']) : '';
-    $correo = isset($_POST['userEmail']) ? trim($_POST['userEmail']) : '';
+    $nombre   = isset($_POST['userName']) ? trim($_POST['userName']) : '';
+    $correo   = isset($_POST['userEmail']) ? trim($_POST['userEmail']) : '';
     $password = isset($_POST['userPassword']) ? $_POST['userPassword'] : '';
 
     // Validaciones
@@ -57,73 +44,68 @@ if ($action === 'register') {
         set_flash('error', 'Por favor completa todos los campos.');
         redirect_login();
     }
-
     if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
         set_flash('error', 'El correo no tiene un formato válido.');
         redirect_login();
     }
-
     if (strlen($password) < 6) {
         set_flash('error', 'La contraseña debe tener al menos 6 caracteres.');
         redirect_login();
     }
 
-    // Comprobamos si el usuario ya existe
+    // Verificar si el correo ya existe
     $existing = $userModel->findByEmail($correo);
     if ($existing) {
         set_flash('error', 'La cuenta ya existe (correo registrado).');
         redirect_login();
     }
 
-    // Hasheamos la contraseña
+    // Hashear contraseña
     $hash = password_hash($password, PASSWORD_DEFAULT);
 
-    // Creamos el usuario
+    // Crear usuario
     $createResult = $userModel->create($nombre, $correo, $hash);
 
     if ($createResult) {
-        $newUserId = is_int($createResult) ? $createResult : (int)$db->insert_id;
-        session_regenerate_id(true); // Seguridad
+        // Obtener ID del usuario creado
+        $newUserId = $db->lastInsertId();
 
-        // Guardamos sesión del usuario con foto por defecto
+        session_regenerate_id(true); // Seguridad
         $_SESSION['usuario_id'] = $newUserId;
         $_SESSION['user'] = [
-            'id' => $newUserId,
-            'nombre' => $nombre,
-            'correo' => $correo,
-            'foto_perfil' => 'assets/uploads/default.jpeg' // Foto por defecto
+            'id'          => $newUserId,
+            'nombre'      => $nombre,
+            'correo'      => $correo,
+            'foto_perfil' => 'assets/uploads/default.jpeg'
         ];
 
-        set_flash('success', 'Usuario registrado y autenticado correctamente. ¡Bienvenido!');
+        set_flash('success', 'Usuario registrado correctamente. ¡Bienvenido!');
         redirect_home();
     } else {
-        set_flash('error', 'Ocurrió un error al registrar el usuario. Intenta de nuevo.');
+        set_flash('error', 'Ocurrió un error al registrar el usuario.');
         redirect_login();
     }
 }
 
 // =====================================================
-// --- 7) GESTIÓN DEL LOGIN ---
+// --- LOGIN ---
 // =====================================================
 elseif ($action === 'login') {
-
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') redirect_login();
 
-    $correo = isset($_POST['userEmail']) ? trim($_POST['userEmail']) : '';
+    $correo   = isset($_POST['userEmail']) ? trim($_POST['userEmail']) : '';
     $password = isset($_POST['userPassword']) ? $_POST['userPassword'] : '';
 
-    // Validaciones rápidas
     if ($correo === '' || $password === '') {
         set_flash('error', 'Por favor completa todos los campos.');
         redirect_login();
     }
-
     if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
         set_flash('error', 'El correo no tiene un formato válido.');
         redirect_login();
     }
 
-    // Verificamos credenciales
+    // Verificar credenciales
     $user = $userModel->verifyCredentials($correo, $password);
 
     if ($user === false) {
@@ -135,47 +117,45 @@ elseif ($action === 'login') {
         }
         redirect_login();
     } else {
-        session_regenerate_id(true); // Seguridad
-
-        // Guardamos sesión del usuario
+        session_regenerate_id(true);
         $_SESSION['usuario_id'] = $user['id'];
         $_SESSION['user'] = [
-            'id' => $user['id'],
-            'nombre' => isset($user['nombre_usuario']) ? $user['nombre_usuario'] : ($user['nombre'] ?? ''),
-            'correo' => $user['correo'],
+            'id'          => $user['id'],
+            'nombre'      => $user['nombre_usuario'],
+            'correo'      => $user['correo'],
             'foto_perfil' => !empty($user['foto_perfil']) ? $user['foto_perfil'] : 'assets/uploads/default.jpeg'
         ];
 
-        // =================================================
-        // --- 8) IMPLEMENTACIÓN DEL "RECORDARME" TOKEN ---
-        // =================================================
+        // =========================================
+        // --- "Recordarme" con token ---
+        // =========================================
         if (isset($_POST['remember_me']) && $_POST['remember_me'] === 'on') {
-            // Generar token seguro
-            $token = bin2hex(random_bytes(32)); // 64 caracteres hexadecimales
+            $token = bin2hex(random_bytes(32));
 
-            // Guardar token en la tabla sesiones
-            $stmt = $db->prepare("INSERT INTO sesiones (usuario_id, token, creado_en) VALUES (?, ?, NOW())");
-            $stmt->bind_param("is", $user['id'], $token);
-            $stmt->execute();
-            $stmt->close();
+            $sql ="INSERT INTO tokens (user_id, token, expiracion, creado_en) VALUES (:usuario_id, :token, DATE_ADD(NOW(), INTERVAL 30 DAY), NOW())";
 
-            // Guardar token en cookie segura
+            $stmt = $db->prepare($sql);
+            $stmt->execute([
+                ":usuario_id" => $user['id'],
+                ":token"      => $token
+            ]);
+
             setcookie('remember_me', $token, [
-                'expires' => time() + 60*60*24*30, // 30 días
-                'path' => '/',
-                'secure' => true,     // HTTPS obligatorio (recomendado)
-                'httponly' => true,   // No accesible desde JS
-                'samesite' => 'Strict' // Evita CSRF
+                'expires'  => time() + 60*60*24*30, // 30 días
+                'path'     => '/',
+                'secure'   => false,  // cámbialo a true si usas HTTPS
+                'httponly' => true,
+                'samesite' => 'Strict'
             ]);
         }
 
-       
+        set_flash('success', 'Sesión iniciada correctamente.');
         redirect_home();
     }
 }
 
 // =====================================================
-// --- 9) ACCIÓN NO RECONOCIDA ---
+// --- SI NO HAY ACCIÓN ---
 // =====================================================
 else {
     redirect_home();

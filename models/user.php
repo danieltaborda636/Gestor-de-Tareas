@@ -1,113 +1,85 @@
 <?php
 // models/User.php
-
-require_once __DIR__ . '/../config/database.php';
+// Modelo para la tabla "usuarios" usando PDO
 
 class User {
-    private $db; // Guardará la conexión mysqli
+    private $conn;
+    private $table = "usuarios";
 
-    // ------------------------
-    // Constructor
-    // ------------------------
-    public function __construct() {
-        // Creamos instancia de Database y obtenemos conexión
-        $database = new Databasee();
-        $this->db = $database->getConnection();
+    public function __construct($db) {
+        $this->conn = $db; // $db es un objeto PDO
     }
 
-    // ------------------------
+    // Crear nuevo usuario
+    public function create($nombre, $correo, $passwordHash) {
+        $sql = "INSERT INTO {$this->table} (nombre_usuario, correo, contrasena, foto_perfil) 
+                VALUES (:nombre, :correo, :contrasena, :foto)";
+        $stmt = $this->conn->prepare($sql);
+
+        $fotoDefecto = "assets/uploads/default.jpeg";
+        return $stmt->execute([
+            ":nombre" => $nombre,
+            ":correo" => $correo,
+            ":contrasena" => $passwordHash,
+            ":foto" => $fotoDefecto
+        ]);
+    }
+
     // Buscar usuario por correo
-    // ------------------------
     public function findByEmail($correo) {
-        $stmt = $this->db->prepare(
-            "SELECT id, nombre_usuario, correo, contrasena, foto_perfil, fecha_registro 
-             FROM usuarios 
-             WHERE correo = ? LIMIT 1"
-        );
-
-        if (!$stmt) return null;
-
-        $stmt->bind_param("s", $correo);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $user = $result->fetch_assoc();
-        $stmt->close();
-
-        return $user ?: null;
+        $sql = "SELECT * FROM {$this->table} WHERE correo = :correo LIMIT 1";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([":correo" => $correo]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // ------------------------
-    // Buscar usuario por ID o correo
-    // ------------------------
-    public function findByEmailOrId($value) {
-        if (is_numeric($value)) {
-            // Buscar por ID
-            $stmt = $this->db->prepare(
-                "SELECT id, nombre_usuario, correo, contrasena, foto_perfil, fecha_registro 
-                 FROM usuarios 
-                 WHERE id = ? LIMIT 1"
-            );
-            if (!$stmt) return null;
-            $stmt->bind_param("i", $value);
-        } else {
-            // Buscar por correo
-            $stmt = $this->db->prepare(
-                "SELECT id, nombre_usuario, correo, contrasena, foto_perfil, fecha_registro 
-                 FROM usuarios 
-                 WHERE correo = ? LIMIT 1"
-            );
-            if (!$stmt) return null;
-            $stmt->bind_param("s", $value);
-        }
-
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $user = $result->fetch_assoc();
-        $stmt->close();
-
-        return $user ?: null;
+    // Buscar usuario por id o correo
+    public function findByEmailOrId($idOrEmail) {
+        $sql = "SELECT * FROM {$this->table} WHERE id = :id OR correo = :correo LIMIT 1";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([":id" => $idOrEmail, ":correo" => $idOrEmail]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // ------------------------
-    // Crear un nuevo usuario con foto por defecto
-    // ------------------------
-    public function create($nombre, $correo, $contrasenaHash) {
-        $foto_default = 'assets/uploads/default.jpeg'; // Ruta de la foto por defecto
-
-        $stmt = $this->db->prepare(
-            "INSERT INTO usuarios (nombre_usuario, correo, contrasena, foto_perfil) 
-             VALUES (?, ?, ?, ?)"
-        );
-
-        if (!$stmt) return false;
-
-        $stmt->bind_param("ssss", $nombre, $correo, $contrasenaHash, $foto_default);
-        $ok = $stmt->execute();
-
-        if (!$ok) {
-            $stmt->close();
-            return false;
-        }
-
-        $insertId = $stmt->insert_id;
-        $stmt->close();
-
-        return $insertId;
-    }
-
-    // ------------------------
-    // Verificar credenciales (correo + contraseña)
-    // ------------------------
+    // Verificar credenciales
     public function verifyCredentials($correo, $password) {
         $user = $this->findByEmail($correo);
-
-        if (!$user) return false;
-
-        // Verificamos la contraseña con el hash guardado
-        if (password_verify($password, $user['contrasena'])) {
+        if ($user && password_verify($password, $user['contrasena'])) {
             return $user;
         }
-
         return false;
+    }
+
+    // Obtener usuario por ID
+    public function getUserById($id) {
+        $sql = "SELECT * FROM {$this->table} WHERE id = :id LIMIT 1";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([":id" => $id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // Actualizar usuario
+    public function updateUser($id, $nombre, $correo, $contrasena = null, $fotoPerfil = null) {
+        $sql = "UPDATE {$this->table} SET nombre_usuario = :nombre, correo = :correo";
+        $params = [
+            ":nombre" => $nombre,
+            ":correo" => $correo,
+            ":id" => $id
+        ];
+
+        if (!empty($contrasena)) {
+            $sql .= ", contrasena = :contrasena";
+            $params[":contrasena"] = password_hash($contrasena, PASSWORD_BCRYPT);
+        }
+
+        if (!empty($fotoPerfil)) {
+            $sql .= ", foto_perfil = :foto";
+            $params[":foto"] = $fotoPerfil;
+        }
+
+        $sql .= " WHERE id = :id";
+
+        $stmt = $this->conn->prepare($sql);
+        return $stmt->execute($params);
     }
 }

@@ -1,52 +1,85 @@
 <?php
-require_once __DIR__ . "/../config/Database.php"; // Incluye la clase Database
+// models/Task.php
+require_once __DIR__ . "/../config/Database.php";
 
-/* Clase Task con métodos estáticos para operaciones CRUD */
 class Task {
-    // Funcion para crear una nueva tarea
-    public static function create($title, $description, $creator_id, $priority = 'medium', $status = 'todo') {
+    private $conn;
+    private $table = "tasks";
 
-        $conexion = Database::connect(); // Obtiene la conexión mysqli llamando Database::connect()
-
-        // 👇 Incluimos el campo creator_id en el INSERT
-        $sentencia = $conexion->prepare("INSERT INTO tasks (title, description, creator_id, priority, status) VALUES (?, ?, ?, ?, ?)"); 
-        if (!$sentencia) return false;
-
-        // 👇 Vinculamos creator_id como entero (i)
-        $sentencia->bind_param("ssiss", $title, $description, $creator_id, $priority, $status);
-
-        return $sentencia->execute(); // Ejecuta la consulta y devuelve true/false
+    public function __construct($db) {
+        $this->conn = $db; // Objeto PDO
     }
 
-    // Funcion para obtener todas las tareas
-    public static function all() {
-        $conexion = Database::connect();
-        $result = $conexion->query("SELECT * FROM tasks ORDER BY created_at DESC");
-        return $result->fetch_all(MYSQLI_ASSOC);
+    // Crear nueva tarea
+    public function create($data) {
+        $sql = "INSERT INTO {$this->table} 
+            (title, description, creator_id, assignee_id, project_id, parent_task_id, status, priority, start_date, due_date, recurrence_rule, position) 
+            VALUES (:title, :description, :creator_id, :assignee_id, :project_id, :parent_task_id,:status, :priority, :start_date, :due_date, :recurrence_rule, :position)";
+
+        $stmt = $this->conn->prepare($sql);
+
+        return $stmt->execute([
+            ":title"          => $data['title'],
+            ":description"    => $data['description'],
+            ":creator_id"     => $data['creator_id'],
+            ":assignee_id"    => $data['assignee_id'] ?? null,
+            ":project_id"     => $data['project_id'] ?? null,
+            ":parent_task_id" => $data['parent_task_id'] ?? null,
+            ":status"         => $data['status'] ?? 'todo',
+            ":priority"       => $data['priority'] ?? 'medium',
+            ":start_date"     => $data['start_date'] ?? null,
+            ":due_date"       => $data['due_date'] ?? null,
+            ":recurrence_rule"=> $data['recurrence_rule'] ?? 'none',
+            ":position"       => $data['position'] ?? 0
+        ]);
     }
 
-    // Funcion para obtener una tarea por id
-    public static function buscar($id) {
-        $conexion = Database::connect();
-        $sentencia = $conexion->prepare("SELECT * FROM tasks WHERE id = ?");
-        $sentencia->bind_param("i", $id);
-        $sentencia->execute();
-        return $sentencia->get_result()->fetch_assoc();
+    // Obtener todas las tareas
+    public function all() {
+        $sql = "SELECT t.*, u.nombre_usuario AS assignee, p.name AS project 
+                FROM {$this->table} t
+                LEFT JOIN usuarios u ON t.assignee_id = u.id
+                LEFT JOIN projects p ON t.project_id = p.id
+                ORDER BY t.created_at DESC";
+        return $this->conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Funcion para actualizar una tarea
-    public static function update($id, $title, $description, $priority, $status) {
-        $conexion = Database::connect();
-        $sentencia = $conexion->prepare("UPDATE tasks SET title=?, description=?, priority=?, status=? WHERE id=?");
-        $sentencia->bind_param("ssssi", $title, $description, $priority, $status, $id);
-        return $sentencia->execute();
+    // Buscar una tarea por id
+    public function find($id) {
+        $sql = "SELECT * FROM {$this->table} WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([":id" => $id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // Funcion para eliminar una tarea por id
-    public static function delete($id) {
-        $conexion = Database::connect();
-        $sentencia = $conexion->prepare("DELETE FROM tasks WHERE id = ?");
-        $sentencia->bind_param("i", $id);
-        return $sentencia->execute();
+    // Actualizar tarea
+    public function update($id, $data) {
+        $sql = "UPDATE {$this->table} SET title = :title, description = :description, assignee_id = :assignee_id,
+            project_id = :project_id, parent_task_id = :parent_task_id, status = :status, priority = :priority, start_date = :start_date,
+            due_date = :due_date, recurrence_rule = :recurrence_rule, position = :position, updated_at = NOW() WHERE id = :id";
+
+        $stmt = $this->conn->prepare($sql);
+
+        return $stmt->execute([
+            ":id"             => $id,
+            ":title"          => $data['title'],
+            ":description"    => $data['description'],
+            ":assignee_id"    => $data['assignee_id'] ?? null,
+            ":project_id"     => $data['project_id'] ?? null,
+            ":parent_task_id" => $data['parent_task_id'] ?? null,
+            ":status"         => $data['status'],
+            ":priority"       => $data['priority'],
+            ":start_date"     => $data['start_date'] ?? null,
+            ":due_date"       => $data['due_date'] ?? null,
+            ":recurrence_rule"=> $data['recurrence_rule'] ?? 'none',
+            ":position"       => $data['position'] ?? 0
+        ]);
+    }
+
+    // Eliminar tarea
+    public function delete($id) {
+        $sql = "DELETE FROM {$this->table} WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        return $stmt->execute([":id" => $id]);
     }
 }
