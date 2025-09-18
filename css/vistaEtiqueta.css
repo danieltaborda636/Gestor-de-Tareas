@@ -1,0 +1,102 @@
+/* Variables para colores y fuentes */
+:root {
+    --primary-color: #2e7bff; /* Un azul vibrante para elementos principales */
+    --secondary-color: #f0f2f5; /* Color de fondo claro para el cuerpo */
+    --sidebar-bg: #222e4e; /* Fondo oscuro del sidebar */
+    --text-color-dark: #333; /* Color de texto oscuro general */
+    --text-color-light: #fefefe; /* Color de texto claro para el sidebar */
+    --card-bg: #fff; /* Fondo de las tarjetas y secciones */
+    --border-color: #ddd; /* Color de borde para inputs y separadores */
+    --font-family: 'Arial', sans-serif; /* Puedes cambiar por una fuente de Google Fonts */
+}
+
+
+/* Grupos de inputs */
+form div {
+    margin-bottom: 1.5rem;
+}
+
+/* Etiquetas */
+form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: var(--text-color-dark);
+}
+
+/* Inputs de texto */
+form input[type="text"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Efecto focus */
+form input[type="text"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 6px rgba(46, 123, 255, 0.3);
+}
+
+/* Input color */
+form input[type="color"] {
+    width: 60px;
+    height: 40px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 0;
+}
+
+/* Contenedor de cada grupo */
+form div {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Etiquetas */
+form label {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-color-dark);
+    font-size: 0.95rem;
+}
+
+/* Input de texto */
+#nombre {
+    padding: 0.8rem 1rem;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    font-size: 1rem;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+#nombre:focus {
+    border: 2px solid var(--primary-color);
+    background: #fff;
+    box-shadow: 0 6px 14px rgba(46, 123, 255, 0.3);
+    outline: none;
+}
+
+/* Input de color */
+#color {
+    width: 80px;
+    height: 50px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#color:hover {
+    transform: rotate(-5deg) scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
