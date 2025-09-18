@@ -118,6 +118,7 @@ $loggedUser = isset($_SESSION['user']) ? $_SESSION['user'] : null;
                     </div>
                     <input type="submit" value="Iniciar Sesión">
                 </form>
+                <a href="olvidemicontra.php">¿olvidaste tu clave?</a>
             </div>
         </div>
     </div>
