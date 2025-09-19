@@ -66,10 +66,10 @@ $usuario = $_SESSION['user'];
 <head>
     <meta charset="UTF-8">
     <title>Mis tareas</title>
-    <link rel="stylesheet" href="http://localhost/proyecto-1/Gestor-de-Tareas/css/pruevas.css">
      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="http://localhost/proyecto-1/Gestor-de-Tareas/css/pruevas.css">
 
     <!-- Bootstrap JS (necesario para el modal) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -229,7 +229,14 @@ $usuario = $_SESSION['user'];
                 <tbody>
                     <?php foreach ($tareas as $t): ?>
                         <tr>
-                            <td><?= htmlspecialchars($t['title']) ?></td>
+                            <td>
+                                <?php if (!empty($t['parent_task_id'])): ?>
+                                    🔹 <em><?= htmlspecialchars($t['title']) ?></em>
+                                    <br><small>Subtarea de: <?= htmlspecialchars($t['parent_title'] ?? '—') ?></small>
+                                <?php else: ?>
+                                    <?= htmlspecialchars($t['title']) ?>
+                                <?php endif; ?>
+                            </td>
                             <td><?= htmlspecialchars($t['description']) ?></td>
                             <td><?= htmlspecialchars($t['project_name'] ?? '—') ?></td>
                             <td><?= htmlspecialchars($t['priority']) ?></td>

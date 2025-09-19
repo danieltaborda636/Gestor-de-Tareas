@@ -26,6 +26,7 @@ $commentModel = new Comment($db);
 
 // Buscar la tarea
 $task = $taskModel->find($_GET['id']);
+$subtasks = $taskModel->getSubtasks($task['id']);
 if (!$task) {
     header("Location: vistaTareas.php?error=Tarea no encontrada");
     exit;
@@ -41,6 +42,7 @@ $usuario = $_SESSION['user'];
     <meta charset="UTF-8">
     <title>Detalle de tarea</title>
     <link rel="stylesheet" href="http://localhost/proyecto-1/Gestor-de-Tareas/css/pruevas.css">
+    <link rel="stylesheet" href="http://localhost/proyecto-1/Gestor-de-Tareas/css/vistaTareas.css">
 </head>
 <body>
 <div class="dashboard-container">
@@ -81,6 +83,44 @@ $usuario = $_SESSION['user'];
         <p><strong>Estado:</strong> <?= htmlspecialchars($task['status']) ?></p>
         <p><strong>Inicio:</strong> <?= $task['start_date'] ? date("d-m-Y", strtotime($task['start_date'])) : "—" ?></p>
         <p><strong>Vencimiento:</strong> <?= $task['due_date'] ? date("d-m-Y", strtotime($task['due_date'])) : "—" ?></p>
+
+        <hr>
+        <h3>Subtareas</h3>
+
+        <!-- Formulario agregar subtarea -->
+        <form method="POST" action="controllers/TaskController.php?action=create">
+            <input type="hidden" name="parent_task_id" value="<?= $task['id'] ?>">
+            <input type="hidden" name="creator_id" value="<?= $userId ?>">
+            <label>Título:</label>
+            <input type="text" name="title" required>
+            <label>Descripción:</label>
+            <input type="text" name="description">
+            <label>Prioridad:</label>
+            <select name="priority">
+                <option value="low">Baja</option>
+                <option value="medium">Media</option>
+                <option value="high">Alta</option>
+                <option value="urgent">Urgente</option>
+            </select>
+            <button type="submit">Agregar Subtarea</button>
+        </form>
+
+        <!-- Listado de subtareas -->
+        <?php if (!empty($subtasks)): ?>
+            <ul>
+                <?php foreach ($subtasks as $s): ?>
+                    <li>
+                        <strong><?= htmlspecialchars($s['title']) ?></strong> 
+                        (<?= htmlspecialchars($s['status']) ?>)
+                        <a href="verTarea.php?id=<?= $s['id'] ?>">Ver</a>
+                        <a href="controllers/TaskController.php?action=delete&id=<?= $s['id'] ?>" 
+                        onclick="return confirm('¿Eliminar subtarea?')">Eliminar</a>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        <?php else: ?>
+            <p>No hay subtareas aún.</p>
+        <?php endif; ?>
 
         <hr>
         <h3>Comentarios</h3>

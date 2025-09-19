@@ -54,6 +54,12 @@ switch ($action) {
                 $historialModel->registrar($_SESSION['user']['id'], 'create', "Creó la tarea ID $task_id");
 
                 $_SESSION['mensaje'] = "Tarea creada con éxito";
+
+                // 👇 Si es subtarea, volvemos al detalle de la tarea padre
+                if (!empty($data['parent_task_id'])) {
+                    header("Location: ../verTarea.php?id=" . $data['parent_task_id']);
+                    exit();
+                }
             } else {
                 $_SESSION['error'] = "Error al crear la tarea";
             }
@@ -85,6 +91,12 @@ switch ($action) {
                 $historialModel->registrar($_SESSION['user']['id'], 'update', "Actualizó la tarea ID {$_POST['id']}");
 
                 $_SESSION['mensaje'] = "Tarea actualizada con éxito";
+
+                // 👇 Si era una subtarea, redirigir a la tarea padre
+                if (!empty($data['parent_task_id'])) {
+                    header("Location: ../verTarea.php?id=" . $data['parent_task_id']);
+                    exit();
+                }
             } else {
                 $_SESSION['error'] = "Error al actualizar la tarea";
             }
@@ -95,11 +107,18 @@ switch ($action) {
     case "delete":
         if (isset($_GET['id']) && is_numeric($_GET['id'])) {
             $taskId = $_GET['id'];
+            $task = $taskModel->find($taskId); // 👈 para ver si tenía padre
 
             // Pasar usuario como segundo parámetro
             if ($taskModel->delete($taskId, $_SESSION['user']['id'])) {
                 $historialModel->registrar($_SESSION['user']['id'], 'delete', "Eliminó la tarea ID $taskId");
                 $_SESSION['mensaje'] = "Tarea eliminada con éxito";
+
+                // 👇 Si era subtarea, volver al detalle del padre
+                if (!empty($task['parent_task_id'])) {
+                    header("Location: ../verTarea.php?id=" . $task['parent_task_id']);
+                    exit();
+                }
             } else {
                 $_SESSION['error'] = "Error al eliminar la tarea";
             }

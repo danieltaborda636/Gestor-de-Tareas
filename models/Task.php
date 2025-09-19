@@ -72,15 +72,16 @@ class Task {
 
     // Obtener tareas por usuario
     public function getByUser($userId) {
-        $sql = "SELECT t.*, u.nombre_usuario AS assignee, p.name AS project_name 
-                FROM {$this->table} t
-                LEFT JOIN usuarios u ON t.assignee_id = u.id
+        $sql = "SELECT t.*, 
+                    p.name AS project_name,
+                    tp.title AS parent_title
+                FROM tasks t
                 LEFT JOIN projects p ON t.project_id = p.id
+                LEFT JOIN tasks tp ON t.parent_task_id = tp.id
                 WHERE t.creator_id = :userId OR t.assignee_id = :userId
                 ORDER BY t.created_at DESC";
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
-        $stmt->execute();
+        $stmt->execute([':userId' => $userId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -92,42 +93,44 @@ class Task {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function search($userId, $filters = []) {
-        $sql = "SELECT t.*, u.nombre_usuario AS assignee, p.name AS project_name
-                FROM {$this->table} t
-                LEFT JOIN usuarios u ON t.assignee_id = u.id
+    public function search($userId, $filtros) {
+        $sql = "SELECT t.*, 
+                    p.name AS project_name,
+                    tp.title AS parent_title
+                FROM tasks t
                 LEFT JOIN projects p ON t.project_id = p.id
+                LEFT JOIN tasks tp ON t.parent_task_id = tp.id
                 WHERE (t.creator_id = :userId OR t.assignee_id = :userId)";
+        
+        $params = [':userId' => $userId];
 
-        $params = [":userId" => $userId];
-
-        if (!empty($filters['q'])) {
+        if (!empty($filtros['q'])) {
             $sql .= " AND (t.title LIKE :q OR t.description LIKE :q)";
-            $params[':q'] = "%" . $filters['q'] . "%";
+            $params[':q'] = "%" . $filtros['q'] . "%";
         }
-        if (!empty($filters['project_id'])) {
+        if (!empty($filtros['project_id'])) {
             $sql .= " AND t.project_id = :project_id";
-            $params[':project_id'] = $filters['project_id'];
+            $params[':project_id'] = $filtros['project_id'];
         }
-        if (!empty($filters['priority'])) {
+        if (!empty($filtros['priority'])) {
             $sql .= " AND t.priority = :priority";
-            $params[':priority'] = $filters['priority'];
+            $params[':priority'] = $filtros['priority'];
         }
-        if (!empty($filters['status'])) {
+        if (!empty($filtros['status'])) {
             $sql .= " AND t.status = :status";
-            $params[':status'] = $filters['status'];
+            $params[':status'] = $filtros['status'];
         }
-        if (!empty($filters['assignee_id'])) {
+        if (!empty($filtros['assignee_id'])) {
             $sql .= " AND t.assignee_id = :assignee_id";
-            $params[':assignee_id'] = $filters['assignee_id'];
+            $params[':assignee_id'] = $filtros['assignee_id'];
         }
-        if (!empty($filters['start_date'])) {
+        if (!empty($filtros['start_date'])) {
             $sql .= " AND t.start_date >= :start_date";
-            $params[':start_date'] = $filters['start_date'];
+            $params[':start_date'] = $filtros['start_date'];
         }
-        if (!empty($filters['due_date'])) {
+        if (!empty($filtros['due_date'])) {
             $sql .= " AND t.due_date <= :due_date";
-            $params[':due_date'] = $filters['due_date'];
+            $params[':due_date'] = $filtros['due_date'];
         }
 
         $sql .= " ORDER BY t.created_at DESC";
@@ -199,4 +202,13 @@ class Task {
 
         return $result;
     }
+
+    // Obtener subtareas de una tarea
+    public function getSubtasks($taskId) {
+        $sql = "SELECT * FROM {$this->table} WHERE parent_task_id = :taskId ORDER BY created_at ASC";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([":taskId" => $taskId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
 }
