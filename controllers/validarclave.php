@@ -35,7 +35,7 @@ try {
 
     // 2️⃣ Verificar expiración
     if (new DateTime() > new DateTime($fila['expires_at'])) {
-        $_SESSION['resultado'] = "El token ha expirado.";
+        $_SESSION['resultado'] = "";
         header("Location: ../olvidemicontra.php");
         exit();
     }

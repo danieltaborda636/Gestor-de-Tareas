@@ -1,6 +1,7 @@
 <?php
 session_start();
 date_default_timezone_set('America/Bogota'); // Hora local
+echo "Hora actual: " . date("Y-m-d H:i:s");
 
 require_once __DIR__ . "/config/database.php";
 require __DIR__ . "/vendor/autoload.php";
@@ -30,11 +31,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit;
     }
 
-    // Crear token y expiración
-    $token = bin2hex(random_bytes(16));
-    $fecha_expiracion = date("Y-m-d H:i:s", strtotime("+1 hour"));
+    // 1️⃣ Eliminar tokens antiguos del usuario
+    $stmt = $conn->prepare("DELETE FROM contrasenasrecuperar WHERE user_id = :user_id");
+    $stmt->execute([':user_id' => $usuario['id']]);
 
-    // Guardar token en la base
+    // 2️⃣ Crear token y fecha de expiración
+    $token = bin2hex(random_bytes(16));
+    $fecha_expiracion = date("Y-m-d H:i:s", strtotime("+10 hour"));
+
+    // 3️⃣ Guardar token en la base
     $stmt = $conn->prepare("INSERT INTO contrasenasrecuperar (user_id, token, expires_at) VALUES (:user_id, :token, :expires_at)");
     $stmt->execute([
         ':user_id' => $usuario['id'],
@@ -42,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         ':expires_at' => $fecha_expiracion
     ]);
 
-    // Enviar correo
+    // 4️⃣ Enviar correo
     $mail = new PHPMailer(true);
     try {
         $mail->isSMTP();

@@ -205,9 +205,9 @@ try {
                         <h3>Vista General del Proyecto</h3>
                         <div class="project-progress">
                             <div class="progress-bar">
-                                <div class="progress-fill" style="width: 30%;"></div>
+                                <div class="progress-fill" style="width: 95%;"></div>
                             </div>
-                            <span>30%</span>
+                            <span>95%</span>
                         </div>
                         <p>Rediseño de Sitio Web</p>
                     </div>

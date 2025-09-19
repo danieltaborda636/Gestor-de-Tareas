@@ -8,6 +8,8 @@ if (!isset($_SESSION["errorcorreo"])) {
 if (!isset($_SESSION["Mensajerecuperacion"])) {
     $_SESSION["Mensajerecuperacion"] = "";
 }
+echo "Hora actual: " . date("Y-m-d H:i:s");
+
 ?>
 
 <!DOCTYPE html>
@@ -58,5 +60,6 @@ if (!isset($_SESSION["Mensajerecuperacion"])) {
         </script>
         <?php unset($_SESSION["Mensajerecuperacion"]); ?>
     <?php endif; ?>
+    
 </body>
 </html>
