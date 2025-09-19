@@ -112,6 +112,14 @@ body {
     width: 300px;
 }
 
+.busquedaSeleccion{
+    border: 1px solid var(--border-color);
+    width: 120px;
+    padding: 8px;
+    border-radius: 8px;
+    margin-left: 5px;
+}
+
 .search-box i {
     position: absolute;
     left: 15px;
@@ -394,7 +402,7 @@ body {
     }
     .search-box {
         width: 100%;
-        margin-bottom: 15px;
+        margin-bottom: 15px; 
     }
     .search-box input {
         width: calc(100% - 40px); /* Ajusta el ancho para el icono */

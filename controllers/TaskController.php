@@ -53,9 +53,9 @@ switch ($action) {
                 // Registrar en historial
                 $historialModel->registrar($_SESSION['user']['id'], 'create', "Creó la tarea ID $task_id");
 
-                $_SESSION['mensaje'] = "✅ Tarea creada con éxito";
+                $_SESSION['mensaje'] = "Tarea creada con éxito";
             } else {
-                $_SESSION['error'] = "❌ Error al crear la tarea";
+                $_SESSION['error'] = "Error al crear la tarea";
             }
         }
         header("Location: ../vistaTareas.php");
@@ -84,9 +84,9 @@ switch ($action) {
 
                 $historialModel->registrar($_SESSION['user']['id'], 'update', "Actualizó la tarea ID {$_POST['id']}");
 
-                $_SESSION['mensaje'] = "✅ Tarea actualizada con éxito";
+                $_SESSION['mensaje'] = "Tarea actualizada con éxito";
             } else {
-                $_SESSION['error'] = "❌ Error al actualizar la tarea";
+                $_SESSION['error'] = "Error al actualizar la tarea";
             }
         }
         header("Location: ../vistaTareas.php");
@@ -96,12 +96,12 @@ switch ($action) {
         if (isset($_GET['id']) && is_numeric($_GET['id'])) {
             $taskId = $_GET['id'];
 
-            // ✅ Pasar usuario como segundo parámetro
+            // Pasar usuario como segundo parámetro
             if ($taskModel->delete($taskId, $_SESSION['user']['id'])) {
                 $historialModel->registrar($_SESSION['user']['id'], 'delete', "Eliminó la tarea ID $taskId");
-                $_SESSION['mensaje'] = "✅ Tarea eliminada con éxito";
+                $_SESSION['mensaje'] = "Tarea eliminada con éxito";
             } else {
-                $_SESSION['error'] = "❌ Error al eliminar la tarea";
+                $_SESSION['error'] = "Error al eliminar la tarea";
             }
         }
         header("Location: ../vistaTareas.php");

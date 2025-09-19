@@ -69,7 +69,7 @@ try {
     $stmt = $conn->prepare("DELETE FROM contrasenasrecuperar WHERE token = :token");
     $stmt->execute([':token' => $token]);
 
-    $_SESSION['resultado'] = "✅ Contraseña cambiada correctamente. Ahora puedes iniciar sesión.";
+    $_SESSION['resultado'] = "Contraseña cambiada correctamente. Ahora puedes iniciar sesión.";
     header("Location: ../login.php");
     exit();
 

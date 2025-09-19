@@ -92,6 +92,52 @@ class Task {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
+    public function search($userId, $filters = []) {
+        $sql = "SELECT t.*, u.nombre_usuario AS assignee, p.name AS project_name
+                FROM {$this->table} t
+                LEFT JOIN usuarios u ON t.assignee_id = u.id
+                LEFT JOIN projects p ON t.project_id = p.id
+                WHERE (t.creator_id = :userId OR t.assignee_id = :userId)";
+
+        $params = [":userId" => $userId];
+
+        if (!empty($filters['q'])) {
+            $sql .= " AND (t.title LIKE :q OR t.description LIKE :q)";
+            $params[':q'] = "%" . $filters['q'] . "%";
+        }
+        if (!empty($filters['project_id'])) {
+            $sql .= " AND t.project_id = :project_id";
+            $params[':project_id'] = $filters['project_id'];
+        }
+        if (!empty($filters['priority'])) {
+            $sql .= " AND t.priority = :priority";
+            $params[':priority'] = $filters['priority'];
+        }
+        if (!empty($filters['status'])) {
+            $sql .= " AND t.status = :status";
+            $params[':status'] = $filters['status'];
+        }
+        if (!empty($filters['assignee_id'])) {
+            $sql .= " AND t.assignee_id = :assignee_id";
+            $params[':assignee_id'] = $filters['assignee_id'];
+        }
+        if (!empty($filters['start_date'])) {
+            $sql .= " AND t.start_date >= :start_date";
+            $params[':start_date'] = $filters['start_date'];
+        }
+        if (!empty($filters['due_date'])) {
+            $sql .= " AND t.due_date <= :due_date";
+            $params[':due_date'] = $filters['due_date'];
+        }
+
+        $sql .= " ORDER BY t.created_at DESC";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
     // Actualizar tarea
     public function update($id, $data, $usuarioId) {
         // Normalizar valores opcionales

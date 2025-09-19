@@ -63,10 +63,10 @@ class UserController {
             $_SESSION['user']['foto_perfil'] = $fotoPerfil;
 
             // Mensaje de éxito
-            $_SESSION['flash'] = ['type' => 'success', 'message' => '✅ Usuario actualizado correctamente'];
+            $_SESSION['flash'] = ['type' => 'success', 'message' => 'Usuario actualizado correctamente'];
         } else {
             // Mensaje de error
-            $_SESSION['flash'] = ['type' => 'error', 'message' => '❌ No se pudo actualizar el usuario'];
+            $_SESSION['flash'] = ['type' => 'error', 'message' => 'No se pudo actualizar el usuario'];
         }
 
         // --- 7) Redirigir de vuelta al perfil ---
