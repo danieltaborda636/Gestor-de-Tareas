@@ -30,4 +30,15 @@ class Databasee {
 
         return $this->conn;
     }
+     // ✅ Método estático para llamarlo como Databasee::connect()
+    public static function connect() {
+        $instance = new self();
+        return $instance->getConnection();
+    }
 }
+?>
+
+<?php
+define("BASE_URL", "http://localhost/proyecto-1/Gestor-de-Tareas/");
+define("UPLOADS_URL", BASE_URL . "assets/uploads/");
+

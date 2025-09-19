@@ -64,12 +64,12 @@ $etiquetas = $etiquetaModel->all();
             <h1>TASKIFY</h1>
         </div>
         <nav class="main-nav">
-            <ul>
+           <ul>
                 <li class="active"><a href="inicio.php"><i class="icon-dashboard"></i> Panel de Control</a></li>
-                <li><a href="#"><i class="icon-mytasks"></i> Mis Tareas</a></li>
+                <li><a href="vistaTareas.php"><i class="icon-mytasks"></i> Mis Tareas</a></li>
                 <li><a href="#"><i class="icon-projects"></i> Proyectos</a></li>
-                <li><a href="#"><i class="icon-tags"></i> Etiquetas</a></li>
-                <li><a href="#"><i class="icon-history"></i> Historial</a></li>
+                <li><a href="vistaEtiqueta.php"><i class="icon-tags"></i> Etiquetas</a></li>
+                <li><a href="historial.php"><i class="icon-history"></i> Historial</a></li>
                 <li><a href="#"><i class="icon-admin"></i> Administración</a></li>
             </ul>
         </nav>
@@ -142,6 +142,7 @@ $etiquetas = $etiquetaModel->all();
                 <p>No hay etiquetas registradas.</p>
             <?php endif ?>
         </ul>
+        <a href="javascript:history.back()" class="button-link">Volver</a>
     </main>
 </div>
 </body>

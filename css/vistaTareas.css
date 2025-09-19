@@ -1,0 +1,84 @@
+/* Variables para colores y fuentes */
+:root {
+    --primary-color: #2e7bff; /* Un azul vibrante para elementos principales */
+    --secondary-color: #f0f2f5; /* Color de fondo claro para el cuerpo */
+    --sidebar-bg: #222e4e; /* Fondo oscuro del sidebar */
+    --text-color-dark: #333; /* Color de texto oscuro general */
+    --text-color-light: #fefefe; /* Color de texto claro para el sidebar */
+    --card-bg: #fff; /* Fondo de las tarjetas y secciones */
+    --border-color: #ddd; /* Color de borde para inputs y separadores */
+    --font-family: 'Arial', sans-serif; /* Puedes cambiar por una fuente de Google Fonts */
+}
+/* 🎨 Estilos para el formulario de creación de tareas */
+
+
+/* Inputs y selects */
+form input[type="text"],
+form input[type="date"],
+form textarea,
+form select {
+    width: 100%;
+    padding: 0.7rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    background: var(--secondary-color);
+    color: var(--text-color-dark);
+    transition: border 0.2s, box-shadow 0.2s;
+    margin-bottom: 0.8rem;
+}
+
+form input:focus,
+form textarea:focus,
+form select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 6px rgba(46,123,255,0.4);
+    outline: none;
+}
+
+/* Textarea */
+form textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Checkbox de etiquetas */
+form input[type="checkbox"] {
+    margin-right: 0.5rem;
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+
+/* Mensajes de estado */
+form p {
+    color: #888;
+    font-style: italic;
+}
+
+/* Botón enlace (Volver) */
+a.button-link {
+    display: inline-block;
+    background: var(--sidebar-bg);
+    color: var(--text-color-light);
+    padding: 0.8rem 1.4rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: bold;
+    margin-top: 1rem;
+    transition: background 0.3s, transform 0.2s;
+}
+
+a.button-link:hover {
+    background: #1a223a;
+    transform: translateY(-2px);
+}
+
+a.button-link:active {
+    transform: translateY(0);
+}
+
+
+
+

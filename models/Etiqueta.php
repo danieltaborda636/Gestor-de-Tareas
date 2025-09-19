@@ -1,14 +1,18 @@
 <?php
 // models/Etiqueta.php
 require_once __DIR__ . "/../config/Database.php";
-session_start();
+require_once __DIR__ . "/Historial.php"; // Para registrar acciones en historial
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 class Etiqueta
 {
     private $conn;
     private $table = "etiquetas";
+    private $historial;
 
-    // Acepta opcionalmente una conexión PDO (útil para testing); si no, crea una nueva
     public function __construct($pdo = null)
     {
         if ($pdo instanceof PDO) {
@@ -17,6 +21,8 @@ class Etiqueta
             $database = new Databasee();
             $this->conn = $database->getConnection();
         }
+
+        $this->historial = new Historial($this->conn); // Instancia historial usando la misma conexión
     }
 
     // Devuelve todas las etiquetas activas
@@ -41,26 +47,20 @@ class Etiqueta
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Reemplaza las etiquetas de una tarea.
-     * $labels debe ser un array de ids (enteros). 
-     * Devuelve true/false.
-     */
+    // Reemplaza las etiquetas de una tarea
     public function setForTask($task_id, $labels = [])
     {
         try {
             $this->conn->beginTransaction();
 
-            // Eliminar etiquetas actuales
             $del = $this->conn->prepare("DELETE FROM task_labels WHERE task_id = :task_id");
             $del->execute([":task_id" => $task_id]);
 
-            // Insertar nuevas (si las hay)
             if (!empty($labels) && is_array($labels)) {
                 $ins = $this->conn->prepare("INSERT INTO task_labels (task_id, etiqueta_id) VALUES (:task_id, :etiqueta_id)");
                 foreach ($labels as $label_id) {
                     $label_id = (int)$label_id;
-                    if ($label_id <= 0) continue; // prevenir inserts inválidos
+                    if ($label_id <= 0) continue;
                     $ins->execute([":task_id" => $task_id, ":etiqueta_id" => $label_id]);
                 }
             }
@@ -74,28 +74,30 @@ class Etiqueta
         }
     }
 
-    // Crear nueva etiqueta (mantengo tu API original)
+    // Crear nueva etiqueta con historial
     public function CrearEtiqueta($nombre_etiqueta, $color)
     {
         $nombre_etiqueta = trim($nombre_etiqueta);
         $color = trim($color);
 
-        // Verificar existencia
         $check = $this->conn->prepare("SELECT id FROM {$this->table} WHERE nombre_etiqueta = :nombre LIMIT 1");
         $check->execute([":nombre" => $nombre_etiqueta]);
-        $result = $check->fetch(PDO::FETCH_ASSOC);
-
-        if ($result) {
+        if ($check->fetch(PDO::FETCH_ASSOC)) {
             $_SESSION["error"] = "La etiqueta '{$nombre_etiqueta}' ya existe";
             return false;
         }
 
-        // Insertar
         $sentencia = $this->conn->prepare("INSERT INTO {$this->table} (nombre_etiqueta, color) VALUES (:nombre, :color)");
         $ok = $sentencia->execute([":nombre" => $nombre_etiqueta, ":color" => $color]);
 
         if ($ok) {
             $_SESSION["mensaje"] = "Etiqueta creada con éxito";
+
+            // Registrar historial
+            if (isset($_SESSION['user']['id'])) {
+                $this->historial->add($_SESSION['user']['id'], 'create', "Creó la etiqueta '$nombre_etiqueta'");
+            }
+
             return true;
         } else {
             $_SESSION["error"] = "Error al crear la etiqueta";
@@ -103,28 +105,29 @@ class Etiqueta
         }
     }
 
-    // Actualizar etiqueta (recibe id y nombre nuevo)
+    // Actualizar etiqueta con historial
     public function UpdateEtiqueta($id, $nombre_etiqueta)
     {
         $id = (int)$id;
         $nombre_etiqueta = trim($nombre_etiqueta);
 
-        // Verificar si ya existe otra etiqueta con ese nombre
         $check = $this->conn->prepare("SELECT id FROM {$this->table} WHERE nombre_etiqueta = :nombre AND id != :id LIMIT 1");
         $check->execute([":nombre" => $nombre_etiqueta, ":id" => $id]);
-        $result = $check->fetch(PDO::FETCH_ASSOC);
-
-        if ($result) {
+        if ($check->fetch(PDO::FETCH_ASSOC)) {
             $_SESSION["error"] = "La etiqueta '{$nombre_etiqueta}' ya existe";
             return false;
         }
 
-        // Actualizar
         $sentencia = $this->conn->prepare("UPDATE {$this->table} SET nombre_etiqueta = :nombre WHERE id = :id");
         $ok = $sentencia->execute([":nombre" => $nombre_etiqueta, ":id" => $id]);
 
         if ($ok) {
             $_SESSION["mensaje"] = "Etiqueta actualizada con éxito";
+
+            if (isset($_SESSION['user']['id'])) {
+                $this->historial->add($_SESSION['user']['id'], 'update', "Actualizó la etiqueta ID $id a '$nombre_etiqueta'");
+            }
+
             return true;
         } else {
             $_SESSION["error"] = "Error al actualizar la etiqueta";
@@ -132,19 +135,38 @@ class Etiqueta
         }
     }
 
-    // Eliminar etiqueta por id
+    // Eliminar etiqueta con historial
     public function DeleteEtiqueta($id)
     {
         $id = (int)$id;
+
+        // Obtener nombre antes de eliminar
+        $nombre_etiqueta = $this->getNombreEtiqueta($id);
+
         $sentencia = $this->conn->prepare("DELETE FROM {$this->table} WHERE id = :id");
         $ok = $sentencia->execute([":id" => $id]);
 
         if ($ok) {
             $_SESSION["mensaje"] = "Etiqueta eliminada con éxito";
+
+            if (isset($_SESSION['user']['id'])) {
+                $this->historial->add($_SESSION['user']['id'], 'delete', "Eliminó la etiqueta ID $id '$nombre_etiqueta'");
+            }
+
             return true;
         } else {
             $_SESSION["error"] = "Error al eliminar la etiqueta";
             return false;
         }
+    }
+
+    // Obtener nombre de etiqueta por ID
+    public function getNombreEtiqueta($id)
+    {
+        $id = (int)$id;
+        $stmt = $this->conn->prepare("SELECT nombre_etiqueta FROM {$this->table} WHERE id = :id LIMIT 1");
+        $stmt->execute([":id" => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? $row['nombre_etiqueta'] : null;
     }
 }

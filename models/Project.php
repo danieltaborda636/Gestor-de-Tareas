@@ -1,58 +1,56 @@
 <?php
-require_once __DIR__ . "/../config/Database.php"; // Incluye la clase Database
+require_once __DIR__ . "/../config/Database.php"; // Incluye la clase Databasee
 
-class Projects{
-    public static function create($name, $description, $owner_id){
+class Projects {
 
-        $conexion = Database::connect(); // Obtiene la conexión mysqli llamando Database::connect()
+    // Crear un proyecto
+    public static function create($name, $description, $owner_id) {
+        $conexion = Databasee::connect();
 
-        $sentencia = $conexion->prepare("INSERT INTO projects (name, description, owner_id) VALUES (?, ?, ?)"); // Prepara la consulta SQL con placeholders (?)
-        if (!$sentencia) return false;
-        $sentencia->bind_param("ssi", $name, $description, $owner_id); // Enlaza los parámetros (s=string, i=int)
+        $sql = "INSERT INTO projects (name, description, owner_id) VALUES (?, ?, ?)";
+        $stmt = $conexion->prepare($sql);
 
-        return $sentencia->execute(); // Ejecuta la consulta y devuelve true/false
-
+        return $stmt->execute([$name, $description, $owner_id]);
     }
 
-    // Funcion para obtener todos los proyectos
+    // Obtener todos los proyectos
     public static function all() {
+        $conexion = Databasee::connect();
 
-        $conexion = Database::connect(); // Conexión mysqli
+        $sql = "SELECT * FROM projects ORDER BY created_at DESC";
+        $stmt = $conexion->query($sql);
 
-        $result = $conexion->query("SELECT * FROM projects ORDER BY created_at DESC"); // Ejecuta la consulta
-
-        return $result->fetch_all(MYSQLI_ASSOC); // Devuelve todas las filas como un array asociativo
-
+        return $stmt->fetchAll(); // Devuelve un array asociativo
     }
 
-    // Funcion para obtener una tarea por id
+    // Buscar un proyecto por id
     public static function buscar($id) {
-        $conexion = Database::connect();
+        $conexion = Databasee::connect();
 
-        $sentencia = $conexion->prepare("SELECT * FROM projects WHERE id = ?");
-        $sentencia->bind_param("i", $id);
-        $sentencia->execute();
+        $sql = "SELECT * FROM projects WHERE id = ?";
+        $stmt = $conexion->prepare($sql);
+        $stmt->execute([$id]);
 
-        return $sentencia->get_result()->fetch_assoc();
+        return $stmt->fetch(); // Devuelve una sola fila
     }
 
-    // Funcion para actualizar un proyecto
+    // Actualizar un proyecto
     public static function update($id, $name, $description) {
-        $conexion = Database::connect();
+        $conexion = Databasee::connect();
 
-        $sentencia = $conexion->prepare("UPDATE projects SET name=?, description=? WHERE id=?");
-        $sentencia->bind_param("ssi", $name, $description, $id);
+        $sql = "UPDATE projects SET name = ?, description = ? WHERE id = ?";
+        $stmt = $conexion->prepare($sql);
 
-        return $sentencia->execute();
+        return $stmt->execute([$name, $description, $id]);
     }
 
-    public static function delete($id){
-        $conexion = Database::connect();
+    // Eliminar un proyecto
+    public static function delete($id) {
+        $conexion = Databasee::connect();
 
-        $sentencia = $conexion->prepare("DELETE FROM projects WHERE id = ?");
-        $sentencia->bind_param("i", $id);
+        $sql = "DELETE FROM projects WHERE id = ?";
+        $stmt = $conexion->prepare($sql);
 
-        return $sentencia->execute();
+        return $stmt->execute([$id]);
     }
-
 }

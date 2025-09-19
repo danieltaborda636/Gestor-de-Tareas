@@ -12,7 +12,7 @@ if (isset($_GET['action'])) {
                 Projects::create($_POST['name'], $_POST['description'], 1); // Llama a Project::create con los datos recibidos (owner_id=1 por simplicidad)
             }
 
-            header("Location: ../views/projects/list.php"); // Redirige al listado
+            header("Location: ../vistaTareas.php"); // Redirige al listado
             break;
 
         case "update":
@@ -21,7 +21,7 @@ if (isset($_GET['action'])) {
                 Projects::update($_POST['id'], $_POST['name'], $_POST['description']); // Llama a Project::update con los datos recibidos
             }
             
-            header("Location: ../views/projects/list.php"); // Redirige al listado
+            header("Location: ../vistaTareas.php"); // Redirige al listado
             break;
 
         case "delete":
@@ -30,7 +30,7 @@ if (isset($_GET['action'])) {
                 Projects::delete($_GET['id']); // Llama al método delete
             }
             
-            header("Location: ../views/projects/list.php"); // Redirige al listado
+            header("Location: ../vistaTareas.php"); // Redirige al listado
             break;
     }
 }

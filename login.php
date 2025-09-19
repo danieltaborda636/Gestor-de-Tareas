@@ -50,6 +50,28 @@ $loggedUser = isset($_SESSION['user']) ? $_SESSION['user'] : null;
                     <i class='bx bxl-linkedin' ></i>
                 </div>
                 <p>o usa tu email para registrarte</p>
+                <?php
+                if (session_status() === PHP_SESSION_NONE) {
+                    session_start();
+                 }
+
+                // Mostrar mensaje flash si existe
+                if (isset($_SESSION['flash'])) {
+                    $flash = $_SESSION['flash'];
+                    $type = $flash['type']; // 'success' o 'error'
+                    $message = $flash['message'];
+
+                    // Puedes personalizar el HTML según el tipo de mensaje
+                    if ($type === 'success') {
+                        echo "<div style='padding:10px; background-color:#d4edda; color:#155724; border:1px solid #c3e6cb; border-radius:5px; margin-bottom:10px;'>$message</div>";
+                    } elseif ($type === 'error') {
+                        echo "<div style='padding:10px; background-color:#f8d7da; color:#721c24; border:1px solid #f5c6cb; border-radius:5px; margin-bottom:10px;'>$message</div>";
+                    }
+
+                    // Limpiar mensaje para que no se muestre nuevamente
+                    unset($_SESSION['flash']);
+                }
+                ?>
                 
                 <!-- FORMULARIO DE REGISTRO: action apunta al controlador con action=register -->
                 <form class="form form-register" novalidate method="POST" action="controllers/AuthController.php?action=register">
@@ -99,6 +121,28 @@ $loggedUser = isset($_SESSION['user']) ? $_SESSION['user'] : null;
                     <i class='bx bxl-linkedin' ></i>
                 </div>
                 <p>o Iniciar Sesión con una cuenta</p>
+                <?php
+                if (session_status() === PHP_SESSION_NONE) {
+                    session_start();
+                 }
+
+                // Mostrar mensaje flash si existe
+                if (isset($_SESSION['flash'])) {
+                    $flash = $_SESSION['flash'];
+                    $type = $flash['type']; // 'success' o 'error'
+                    $message = $flash['message'];
+
+                    // Puedes personalizar el HTML según el tipo de mensaje
+                    if ($type === 'success') {
+                        echo "<div style='padding:10px; background-color:#d4edda; color:#155724; border:1px solid #c3e6cb; border-radius:5px; margin-bottom:10px;'>$message</div>";
+                    } elseif ($type === 'error') {
+                        echo "<div style='padding:10px; background-color:#f8d7da; color:#721c24; border:1px solid #f5c6cb; border-radius:5px; margin-bottom:10px;'>$message</div>";
+                    }
+
+                    // Limpiar mensaje para que no se muestre nuevamente
+                    unset($_SESSION['flash']);
+                }
+                ?>
                 
                 <!-- FORMULARIO DE LOGIN: action apunta al controlador con action=login -->
                 <form class="form form-login" novalidate method="POST" action="controllers/AuthController.php?action=login">

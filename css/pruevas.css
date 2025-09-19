@@ -229,9 +229,7 @@ body {
     margin-bottom: 20px;
     display: inline-block; /* Para que el botón de nueva tarea esté en la misma línea */
 }
-.CrearTarea{
-text-decoration: none;
-}
+
 .new-task-btn {
     background-color: var(--primary-color);
     color: var(--text-color-light);
@@ -668,4 +666,63 @@ button:hover, .submit-btn:hover {
         padding: 1.5rem;
         max-width: 100%;
     }
+}
+
+
+
+
+
+
+h2 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card-bg);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+table thead {
+    background: var(--primary-color);
+    color: var(--text-color-light);
+}
+
+table th, table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+table tbody tr:hover {
+    background: #f9f9f9;
+}
+
+a {
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Botón "Nueva tarea" */
+.button-link {
+    display: inline-block;
+    background: var(--primary-color);
+    color: var(--text-color-light);
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    transition: background 0.3s ease;
+}
+
+.button-link:hover {
+    background: #1a5edb;
 }
