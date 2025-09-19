@@ -97,7 +97,7 @@ $usuario = $_SESSION['user'];
             <ul>
                 <li class="active"><a href="inicio.php"><i class="icon-dashboard"></i> Panel de Control</a></li>
                 <li><a href="vistaTareas.php"><i class="icon-mytasks"></i> Mis Tareas</a></li>
-                <li><a href="#"><i class="icon-projects"></i> Proyectos</a></li>
+                <li><a href="vistaProyectos.php"><i class="icon-projects"></i> Proyectos</a></li>
                 <li><a href="vistaEtiqueta.php"><i class="icon-tags"></i> Etiquetas</a></li>
                 <li><a href="historial.php"><i class="icon-history"></i> Historial</a></li>
                 <li><a href="#"><i class="icon-admin"></i> Administración</a></li>
@@ -180,7 +180,7 @@ $usuario = $_SESSION['user'];
                 <div class="user-profile">
                     <img src="<?php echo htmlspecialchars($usuario['foto_perfil']); ?>" alt="Avatar de Usuario">
                     <span><?php echo htmlspecialchars($usuario['nombre']); ?></span>
-                    <form action="../../logout.php" method="POST">
+                    <form action="logout.php" method="POST">
                         <button type="submit">Cerrar sesión</button>
                     </form>
                 </div>
@@ -214,6 +214,7 @@ $usuario = $_SESSION['user'];
                             <td><?= !empty($t['start_date']) ? date('d-m-Y', strtotime($t['start_date'])) : '' ?></td>
                             <td><?= !empty($t['due_date']) ? date('d-m-Y', strtotime($t['due_date'])) : '' ?></td>
                             <td>
+                                <a href="verTarea.php?id=<?= $t['id'] ?>">Ver</a> |
                                 <a href="#" class="editar-btn" data-id="<?= $t['id'] ?>">Editar</a> |
                                 <a href="controllers/TaskController.php?action=delete&id=<?= $t['id'] ?>" onclick="return confirm('¿Seguro que deseas eliminar esta tarea?')">Eliminar</a>
                             </td>

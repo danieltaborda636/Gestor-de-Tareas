@@ -1,0 +1,118 @@
+<?php
+require_once __DIR__ . "/config/Database.php";
+require_once __DIR__ . "/models/Task.php";
+require_once __DIR__ . "/models/Comment.php";
+require_once __DIR__ . "/models/User.php";
+
+session_start();
+
+if (!isset($_SESSION['usuario_id'])) {
+    header("Location: login.php?error=Debes iniciar sesión");
+    exit;
+}
+
+if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+    header("Location: vistaTareas.php?error=ID inválido");
+    exit;
+}
+
+$userId = $_SESSION['usuario_id'];
+
+$database = new Databasee();
+$db = $database->getConnection();
+
+$taskModel = new Task($db);
+$commentModel = new Comment($db);
+
+// Buscar la tarea
+$task = $taskModel->find($_GET['id']);
+if (!$task) {
+    header("Location: vistaTareas.php?error=Tarea no encontrada");
+    exit;
+}
+
+// Obtener comentarios
+$comments = $commentModel->allByTask($task['id']);
+$usuario = $_SESSION['user'];
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalle de tarea</title>
+    <link rel="stylesheet" href="http://localhost/proyecto-1/Gestor-de-Tareas/css/pruevas.css">
+</head>
+<body>
+<div class="dashboard-container">
+    <aside class="sidebar">
+        <div class="logo">
+            <img src="http://localhost/proyecto-1/Gestor-de-Tareas/assets/uploads/logo.png" alt="Logo de Taskify"> 
+            <h1>TASKIFY</h1>
+        </div>
+        <nav class="main-nav">
+            <ul>
+                <li><a href="inicio.php"><i class="icon-dashboard"></i> Panel de Control</a></li>
+                <li class="active"><a href="vistaTareas.php"><i class="icon-mytasks"></i> Mis Tareas</a></li>
+                <li><a href="#"><i class="icon-projects"></i> Proyectos</a></li>
+                <li><a href="vistaEtiqueta.php"><i class="icon-tags"></i> Etiquetas</a></li>
+                <li><a href="historial.php"><i class="icon-history"></i> Historial</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="user-profile">
+                <img src="<?php echo htmlspecialchars($usuario['foto_perfil']); ?>" alt="Avatar de Usuario">
+                <span><?php echo htmlspecialchars($usuario['nombre']); ?></span>
+                <form action="logout.php" method="POST">
+                    <button type="submit">Cerrar sesión</button>
+                </form>
+            </div>
+        </header>
+
+        <h2>Detalle de Tarea</h2>
+
+        <h3><?= htmlspecialchars($task['title']) ?></h3>
+        <p><strong>Descripción:</strong> <?= nl2br(htmlspecialchars($task['description'])) ?></p>
+        <p><strong>Proyecto:</strong> <?= htmlspecialchars($task['project_id'] ? $task['project_id'] : "—") ?></p>
+        <p><strong>Asignada a:</strong> <?= htmlspecialchars($task['assignee_id'] ?? "Nadie") ?></p>
+        <p><strong>Prioridad:</strong> <?= htmlspecialchars($task['priority']) ?></p>
+        <p><strong>Estado:</strong> <?= htmlspecialchars($task['status']) ?></p>
+        <p><strong>Inicio:</strong> <?= $task['start_date'] ? date("d-m-Y", strtotime($task['start_date'])) : "—" ?></p>
+        <p><strong>Vencimiento:</strong> <?= $task['due_date'] ? date("d-m-Y", strtotime($task['due_date'])) : "—" ?></p>
+
+        <hr>
+        <h3>Comentarios</h3>
+
+        <!-- Formulario agregar comentario -->
+        <form method="POST" action="controllers/CommentController.php?action=create">
+            <input type="hidden" name="task_id" value="<?= $task['id'] ?>">
+            <textarea name="body" placeholder="Escribe un comentario..." required></textarea><br>
+            <button type="submit">Agregar comentario</button>
+        </form>
+
+        <!-- Listado de comentarios -->
+        <?php if (!empty($comments)): ?>
+            <ul>
+                <?php foreach ($comments as $c): ?>
+                    <li>
+                        <strong><?= htmlspecialchars($c['nombre_usuario']) ?>:</strong> 
+                        <?= htmlspecialchars($c['body']) ?>
+                        <em>(<?= date("d-m-Y H:i", strtotime($c['created_at'])) ?>)</em>
+                        <?php if ($c['user_id'] == $userId): ?>
+                            <a href="controllers/CommentController.php?action=delete&id=<?= $c['id'] ?>&task_id=<?= $task['id'] ?>">Eliminar</a>
+                        <?php endif; ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        <?php else: ?>
+            <p>No hay comentarios aún.</p>
+        <?php endif; ?>
+
+        <br>
+        <a href="vistaTareas.php">⬅ Volver a mis tareas</a>
+    </main>
+</div>
+</body>
+</html>

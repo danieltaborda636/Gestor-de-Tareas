@@ -67,7 +67,7 @@ $etiquetas = $etiquetaModel->all();
            <ul>
                 <li class="active"><a href="inicio.php"><i class="icon-dashboard"></i> Panel de Control</a></li>
                 <li><a href="vistaTareas.php"><i class="icon-mytasks"></i> Mis Tareas</a></li>
-                <li><a href="#"><i class="icon-projects"></i> Proyectos</a></li>
+                <li><a href="vistaProyectos.php"><i class="icon-projects"></i> Proyectos</a></li>
                 <li><a href="vistaEtiqueta.php"><i class="icon-tags"></i> Etiquetas</a></li>
                 <li><a href="historial.php"><i class="icon-history"></i> Historial</a></li>
                 <li><a href="#"><i class="icon-admin"></i> Administración</a></li>
@@ -87,7 +87,7 @@ $etiquetas = $etiquetaModel->all();
                 <div class="user-profile">
                     <img src="<?= htmlspecialchars($usuario['foto_perfil']) ?>" alt="Avatar de Usuario">
                     <span><?= htmlspecialchars($usuario['nombre']) ?></span>
-                    <form action="logout.php" method="POST">
+                    <form action="logoutphp." method="POST">
                         <button type="submit">Cerrar sesión</button>
                     </form>
                 </div>

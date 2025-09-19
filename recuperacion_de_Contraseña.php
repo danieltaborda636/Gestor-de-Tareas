@@ -3,7 +3,7 @@ session_start();
 date_default_timezone_set('America/Bogota'); // Hora local
 
 require_once __DIR__ . "/config/database.php";
-require "C:/wamp64/www/proyecto-1/Gestor-de-Tareas/vendor/autoload.php";
+require __DIR__ . "/vendor/autoload.php";
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;

@@ -24,6 +24,14 @@ class Task {
 
     // Crear nueva tarea
     public function create($data) {
+        // Normalizar valores opcionales
+        $data['assignee_id']    = !empty($data['assignee_id']) ? $data['assignee_id'] : null;
+        $data['project_id']     = !empty($data['project_id']) ? $data['project_id'] : null;
+        $data['parent_task_id'] = !empty($data['parent_task_id']) ? $data['parent_task_id'] : null;
+        $data['start_date']     = !empty($data['start_date']) ? $data['start_date'] : null;
+        $data['due_date']       = !empty($data['due_date']) ? $data['due_date'] : null;
+        $data['recurrence_rule'] = !empty($data['recurrence_rule']) ? $data['recurrence_rule'] : null;
+
         $sql = "INSERT INTO {$this->table} 
             (title, description, creator_id, assignee_id, project_id, parent_task_id, status, priority, start_date, due_date, recurrence_rule, position) 
             VALUES (:title, :description, :creator_id, :assignee_id, :project_id, :parent_task_id, :status, :priority, :start_date, :due_date, :recurrence_rule, :position)";
@@ -34,15 +42,15 @@ class Task {
             ":title"          => $data['title'],
             ":description"    => $data['description'],
             ":creator_id"     => $data['creator_id'],
-            ":assignee_id"    => $data['assignee_id'] ?? null,
-            ":project_id"     => $data['project_id'] ?? null,
-            ":parent_task_id" => $data['parent_task_id'] ?? null,
-            ":status"         => $data['status'] ?? 'todo',
-            ":priority"       => $data['priority'] ?? 'medium',
-            ":start_date"     => $data['start_date'] ?? null,
-            ":due_date"       => $data['due_date'] ?? null,
-            ":recurrence_rule"=> $data['recurrence_rule'] ?? 'none',
-            ":position"       => $data['position'] ?? 0
+            ":assignee_id"    => $data['assignee_id'],
+            ":project_id"     => $data['project_id'],
+            ":parent_task_id" => $data['parent_task_id'],
+            ":status"         => $data['status'],
+            ":priority"       => $data['priority'],
+            ":start_date"     => $data['start_date'],
+            ":due_date"       => $data['due_date'],
+            ":recurrence_rule"=> $data['recurrence_rule'],
+            ":position"       => $data['position']
         ]);
 
         if ($result) {
@@ -86,6 +94,13 @@ class Task {
 
     // Actualizar tarea
     public function update($id, $data, $usuarioId) {
+        // Normalizar valores opcionales
+        $data['assignee_id']    = !empty($data['assignee_id']) ? $data['assignee_id'] : null;
+        $data['project_id']     = !empty($data['project_id']) ? $data['project_id'] : null;
+        $data['parent_task_id'] = !empty($data['parent_task_id']) ? $data['parent_task_id'] : null;
+        $data['start_date']     = !empty($data['start_date']) ? $data['start_date'] : null;
+        $data['due_date']       = !empty($data['due_date']) ? $data['due_date'] : null;
+        $data['recurrence_rule'] = !empty($data['recurrence_rule']) ? $data['recurrence_rule'] : null;
         $sql = "UPDATE {$this->table} 
                 SET title = :title, 
                     description = :description, 
@@ -107,14 +122,14 @@ class Task {
             ":id"             => $id,
             ":title"          => $data['title'],
             ":description"    => $data['description'],
-            ":assignee_id"    => $data['assignee_id'] ?? null,
-            ":project_id"     => $data['project_id'] ?? null,
-            ":parent_task_id" => $data['parent_task_id'] ?? null,
+            ":assignee_id"    => $data['assignee_id'],
+            ":project_id"     => $data['project_id'],
+            ":parent_task_id" => $data['parent_task_id'],
             ":status"         => $data['status'],
             ":priority"       => $data['priority'],
-            ":start_date"     => $data['start_date'] ?? null,
-            ":due_date"       => $data['due_date'] ?? null,
-            ":recurrence_rule"=> $data['recurrence_rule'] ?? 'none',
+            ":start_date"     => $data['start_date'],
+            ":due_date"       => $data['due_date'],
+            ":recurrence_rule"=> $data['recurrence_rule'],
             ":position"       => $data['position'] ?? 0
         ]);
 
