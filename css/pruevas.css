@@ -23,6 +23,9 @@ body {
     display: flex;
     min-height: 100vh; /* Ocupa al menos la altura completa de la ventana */
 }
+th{
+    background-color: #007bff;
+}
 
 /* Sidebar (Barra lateral) */
 .sidebar {
@@ -91,9 +94,11 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
     margin-bottom: 30px;
     background-color: var(--card-bg);
     padding: 15px 25px;
+    gap: 2em;
     border-radius: 12px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05); /* Sombra suave */
 }
@@ -110,6 +115,7 @@ body {
     padding: 8px 15px 8px 40px; /* Espacio para el icono de búsqueda */
     font-size: 16px;
     width: 300px;
+    position: relative;
 }
 
 .busquedaSeleccion{
@@ -122,12 +128,16 @@ body {
 
 .search-box i {
     position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
     left: 15px;
     color: #999;
 }
 
 .user-actions {
     display: flex;
+    width: 100%;
+    justify-content: end;
     align-items: center;
 }
 
@@ -355,7 +365,7 @@ body {
 .icon-tags::before { content: '🏷️'; }
 .icon-history::before { content: '⏳'; }
 .icon-admin::before { content: '⚙️'; }
-.icon-search::before { content: '🔍'; }
+.icon-search::before { content: ''; }
 .icon-bell::before { content: '🔔'; }
 .icon-settings::before { content: '🔧'; }
 .icon-dropdown::before { content: '▼'; }
