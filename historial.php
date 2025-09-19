@@ -34,6 +34,12 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Historial de Acciones - Taskify</title>
     <link rel="stylesheet" href="http://localhost/proyecto-1/Gestor-de-Tareas/css/pruevas.css">
+     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap JS (necesario para el modal) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
         table {
             width: 100%;
@@ -77,6 +83,44 @@ try {
 
         <main class="main-content">
             <header class="top-bar">
+                    <!-- Botón de notificaciones -->
+                <button id="btnNotificaciones" class="btn btn-light">
+                    <i class="icon-bell"></i>
+                </button>
+
+                    <!-- Modal -->
+                    <div class="modal fade" id="modalNotificaciones" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalLabel">Notificaciones de tareas</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                        </div>
+                        <div class="modal-body" id="contenidoNotificaciones">
+                            <!-- Aquí cargaremos las tareas mediante AJAX -->
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+
+                        <script>
+                        $(document).ready(function(){
+                            $("#btnNotificaciones").click(function(){
+                                $.ajax({
+                                    url: "notificacion.php",
+                                    method: "GET",
+                                    success: function(data){
+                                        $("#contenidoNotificaciones").html(data);
+                                        $("#modalNotificaciones").modal("show");
+                                    },
+                                    error: function(){
+                                        $("#contenidoNotificaciones").html("<p>Error al cargar las notificaciones.</p>");
+                                        $("#modalNotificaciones").modal("show");
+                                    }
+                                });
+                            });
+                        });
+                        </script>
                 <div class="user-profile">
                     <img src="<?= htmlspecialchars($usuario['foto_perfil'] ?? 'assets/uploads/default.jpeg') ?>" alt="Avatar de Usuario">
                     <span><?= htmlspecialchars($usuario['nombre'] ?? 'Usuario') ?></span>
