@@ -93,3 +93,12 @@ form label {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+.etiquetas2{
+    list-style-type: none; /* Quita las viñetas */
+    padding-left: 0;       /* Elimina el espacio extra a la izquierda */
+}
+
+.lista-etiquetas{
+    margin-top: 20px;
+    display: flex;
+}

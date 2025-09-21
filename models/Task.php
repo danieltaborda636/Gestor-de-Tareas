@@ -24,6 +24,18 @@ class Task {
 
     // Crear nueva tarea
     public function create($data) {
+        // Obtener la fecha actual en formato 'Y-m-d'
+        $hoy = date('Y-m-d');
+
+        // Validar que las fechas no sean anteriores a hoy
+        if (!empty($data['start_date']) && $data['start_date'] < $hoy) {
+            throw new Exception("La fecha de inicio no puede ser anterior a hoy.");
+        }
+
+        if (!empty($data['due_date']) && $data['due_date'] < $hoy) {
+            throw new Exception("La fecha de fin no puede ser anterior a hoy.");
+        }
+
         // Normalizar valores opcionales
         $data['assignee_id']    = !empty($data['assignee_id']) ? $data['assignee_id'] : null;
         $data['project_id']     = !empty($data['project_id']) ? $data['project_id'] : null;
@@ -143,6 +155,18 @@ class Task {
 
     // Actualizar tarea
     public function update($id, $data, $usuarioId) {
+        // Obtener la fecha actual en formato 'Y-m-d'
+        $hoy = date('Y-m-d');
+
+        // Validar que las fechas no sean anteriores a hoy
+        if (!empty($data['start_date']) && $data['start_date'] < $hoy) {
+            throw new Exception("La fecha de inicio no puede ser anterior a hoy.");
+        }
+
+        if (!empty($data['due_date']) && $data['due_date'] < $hoy) {
+            throw new Exception("La fecha de fin no puede ser anterior a hoy.");
+        }
+        
         // Normalizar valores opcionales
         $data['assignee_id']    = !empty($data['assignee_id']) ? $data['assignee_id'] : null;
         $data['project_id']     = !empty($data['project_id']) ? $data['project_id'] : null;

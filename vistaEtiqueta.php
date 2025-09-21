@@ -195,23 +195,25 @@ $etiquetas = $etiquetaModel->all();
                 document.getElementById("modalEtiqueta").style.display = "none";
             }
         </script>
-
-        <ul>
-            <?php if (!empty($etiquetas)): ?>
-                <?php foreach ($etiquetas as $etiqueta): ?>
-                    <li>
-                        <?= htmlspecialchars($etiqueta["nombre_etiqueta"]) ?>
-                        <span><i class="fas fa-circle" style="color:<?= htmlspecialchars($etiqueta["color"]) ?>;"></i></span>
-                        <form action="./views/etiquetas/eliminarEtiqueta.php" method="POST">
-                            <input type="hidden" name="id" value="<?= htmlspecialchars($etiqueta["id"]) ?>">
-                            <button type="submit">Eliminar</button>
-                        </form>
-                    </li>
-                <?php endforeach ?>
-            <?php else: ?>
-                <p>No hay etiquetas registradas.</p>
-            <?php endif ?>
-        </ul>
+        <br>
+        <div class="lista-etiquetas">
+            <ul>
+                <?php if (!empty($etiquetas)): ?>
+                    <?php foreach ($etiquetas as $etiqueta): ?>
+                        <li class="etiquetas2">
+                            <?= htmlspecialchars($etiqueta["nombre_etiqueta"]) ?>
+                            <span><i class="fas fa-circle" style="color:<?= htmlspecialchars($etiqueta["color"]) ?>;"></i></span>
+                            <form action="./views/etiquetas/eliminarEtiqueta.php" method="POST">
+                                <input type="hidden" name="id" value="<?= htmlspecialchars($etiqueta["id"]) ?>">
+                                <button type="submit">Eliminar</button>
+                            </form>
+                        </li>
+                    <?php endforeach ?>
+                <?php else: ?>
+                    <p>No hay etiquetas registradas.</p>
+                <?php endif ?>
+            </ul>
+        </div>
         <a href="javascript:history.back()" class="button-link">Volver</a>
     </main>
 </div>

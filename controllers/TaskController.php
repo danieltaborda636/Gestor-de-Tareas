@@ -42,27 +42,35 @@ switch ($action) {
                 "position"       => $_POST['position'] ?? 0
             ];
 
-            if ($taskModel->create($data)) {
-                $task_id = $db->lastInsertId();
+            try {
+                if ($taskModel->create($data)) {
+                    $task_id = $db->lastInsertId();
 
-                $labels = $_POST['labels'] ?? [];
-                if (!empty($labels)) {
-                    $etiquetaModel->setForTask($task_id, $labels);
+                    $labels = $_POST['labels'] ?? [];
+                    if (!empty($labels)) {
+                        $etiquetaModel->setForTask($task_id, $labels);
+                    }
+
+                    // Registrar en historial
+                    $historialModel->registrar($_SESSION['user']['id'], 'create', "Creó la tarea ID $task_id");
+
+                    $_SESSION['mensaje'] = "Tarea creada con éxito";
+
+                    // 👇 Si es subtarea, volvemos al detalle de la tarea padre
+                    if (!empty($data['parent_task_id'])) {
+                        header("Location: ../verTarea.php?id=" . $data['parent_task_id']);
+                        exit();
+                    }
+                } else {
+                    $_SESSION['error'] = "Error al crear la tarea";
                 }
-
-                // Registrar en historial
-                $historialModel->registrar($_SESSION['user']['id'], 'create', "Creó la tarea ID $task_id");
-
-                $_SESSION['mensaje'] = "Tarea creada con éxito";
-
-                // 👇 Si es subtarea, volvemos al detalle de la tarea padre
-                if (!empty($data['parent_task_id'])) {
-                    header("Location: ../verTarea.php?id=" . $data['parent_task_id']);
-                    exit();
-                }
-            } else {
-                $_SESSION['error'] = "Error al crear la tarea";
+            }catch (Exception $e) {
+                // Aquí capturamos el error y lo guardamos en sesión
+                $_SESSION['error'] = $e->getMessage();
+                header("Location: ../vistaTareas.php");
+                exit();
             }
+                
         }
         header("Location: ../vistaTareas.php");
         exit();

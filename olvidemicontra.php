@@ -8,7 +8,6 @@ if (!isset($_SESSION["errorcorreo"])) {
 if (!isset($_SESSION["Mensajerecuperacion"])) {
     $_SESSION["Mensajerecuperacion"] = "";
 }
-echo "Hora actual: " . date("Y-m-d H:i:s");
 
 ?>
 
@@ -18,6 +17,7 @@ echo "Hora actual: " . date("Y-m-d H:i:s");
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Olvidaste tu contraseña</title>
+    <link rel="stylesheet" href="http://localhost/proyecto-1/Gestor-de-Tareas/css/pruevas.css">
     <style>
         #alertacorreo, #alertamsg {
             font-size: 0.9rem;
@@ -27,11 +27,26 @@ echo "Hora actual: " . date("Y-m-d H:i:s");
         }
         #alertacorreo { color: red; }
         #alertamsg { color: blue; }
+        .formulario{
+            border-radius: 8px;
+            border: #222;
+            text-align: center;
+        }
+        h2{
+            text-align: center;
+            margin-top: 200px;
+        }
+        input{
+            width: 280px;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
     </style>
 </head>
 <body>
     <h2>Recuperar contraseña</h2>
-    <form action="recuperacion_de_contraseña.php" method="post">
+    <form action="recuperacion_de_contraseña.php" method="post" class="formulario">
         <label for="email">Ingresa el correo electrónico de tu cuenta:</label><br>
         <input type="email" name="email" id="email" required><br><br>
         <button type="submit">Enviar correo de recuperación</button>

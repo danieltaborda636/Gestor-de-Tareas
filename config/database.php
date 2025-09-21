@@ -6,7 +6,7 @@ class Databasee {
     private $host = "localhost";      // Cambia según tu configuración
     private $db_name = "gestortareas"; // Nombre de tu base de datos
     private $username = "root";       // Usuario de tu BD
-    private $password = "123456";           // Contraseña de tu BD
+    private $password = "";           // Contraseña de tu BD
     private $conn;
 
     // Devuelve una conexión PDO
