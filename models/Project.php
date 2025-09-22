@@ -7,20 +7,38 @@ class Projects {
     public static function create($name, $description, $owner_id) {
         $conexion = Databasee::connect();
 
-        $sql = "INSERT INTO projects (name, description, owner_id) VALUES (?, ?, ?)";
+        $sql = "INSERT INTO projects (name, description, owner_id) 
+                VALUES (:name, :description, :owner_id)";
         $stmt = $conexion->prepare($sql);
 
-        return $stmt->execute([$name, $description, $owner_id]);
+        return $stmt->execute([
+            ":name" => $name,
+            ":description" => $description,
+            ":owner_id" => $owner_id
+        ]);
     }
 
-    // Obtener todos los proyectos
-    public static function all() {
+    // Obtener proyectos según rol
+    public static function getByUser($userId, $rol) {
         $conexion = Databasee::connect();
 
-        $sql = "SELECT * FROM projects ORDER BY created_at DESC";
-        $stmt = $conexion->query($sql);
+        $sql = "SELECT p.*, u.nombre_usuario AS creador_nombre
+                FROM projects p
+                LEFT JOIN usuarios u ON p.owner_id = u.id";
 
-        return $stmt->fetchAll(); // Devuelve un array asociativo
+        $params = [];
+
+        if ($rol !== 'admin') {
+            $sql .= " WHERE p.owner_id = :userId";
+            $params[':userId'] = $userId;
+        }
+
+        $sql .= " ORDER BY p.created_at DESC";
+
+        $stmt = $conexion->prepare($sql);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     // Buscar un proyecto por id

@@ -44,7 +44,7 @@ $usuario = $_SESSION['user'];
 $database = new Databasee();
 $db = $database->getConnection();
 $etiquetaModel = new Etiqueta($db);
-$etiquetas = $etiquetaModel->all();
+$etiquetas = $etiquetaModel->getByUser($usuario['id'], $usuario['rol']);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -157,7 +157,7 @@ $etiquetas = $etiquetaModel->all();
                 <div class="user-profile">
                     <img src="<?= htmlspecialchars($usuario['foto_perfil']) ?>" alt="Avatar de Usuario">
                     <span><?= htmlspecialchars($usuario['nombre']) ?></span>
-                    <form action="logoutphp." method="POST">
+                    <form action="logout.php" method="POST">
                         <button type="submit">Cerrar sesión</button>
                     </form>
                 </div>

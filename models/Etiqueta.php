@@ -25,12 +25,24 @@ class Etiqueta
         $this->historial = new Historial($this->conn); // Instancia historial usando la misma conexión
     }
 
-    // Devuelve todas las etiquetas activas
-    public function all()
-    {
-        $sql = "SELECT * FROM {$this->table} WHERE estado = 'activo' ORDER BY nombre_etiqueta";
+    // Obtener etiquetas según rol
+    public function getByUser($userId, $rol) {
+        $sql = "SELECT e.*, u.nombre_usuario as creador_nombre
+                FROM etiquetas e
+                LEFT JOIN usuarios u ON e.user_id = u.id";
+
+        $params = [];
+
+        if ($rol !== 'admin') {
+            $sql .= " WHERE e.user_id = :userId";
+            $params[':userId'] = $userId;
+        }
+
+        $sql .= " ORDER BY e.fecha_creacion DESC";
+
         $stmt = $this->conn->prepare($sql);
-        $stmt->execute();
+        $stmt->execute($params);
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -80,24 +92,28 @@ class Etiqueta
         $nombre_etiqueta = trim($nombre_etiqueta);
         $color = trim($color);
 
-        $check = $this->conn->prepare("SELECT id FROM {$this->table} WHERE nombre_etiqueta = :nombre LIMIT 1");
-        $check->execute([":nombre" => $nombre_etiqueta]);
+        $check = $this->conn->prepare("SELECT id FROM {$this->table} WHERE user_id = :userId AND nombre_etiqueta = :nombre LIMIT 1");
+        $check->execute([":nombre" => $nombre_etiqueta, ":userId" => $_SESSION['user']['id']]);
         if ($check->fetch(PDO::FETCH_ASSOC)) {
-            $_SESSION["error"] = "La etiqueta '{$nombre_etiqueta}' ya existe";
+            $_SESSION["error"] = "La etiqueta '{$nombre_etiqueta}' ya existe para este usuario";
             return false;
         }
 
-        $sentencia = $this->conn->prepare("INSERT INTO {$this->table} (nombre_etiqueta, color) VALUES (:nombre, :color)");
-        $ok = $sentencia->execute([":nombre" => $nombre_etiqueta, ":color" => $color]);
+        // Guardar con user_id
+        $sentencia = $this->conn->prepare("INSERT INTO {$this->table} (user_id, nombre_etiqueta, color) 
+                                        VALUES (:userId, :nombre, :color)");
+        $ok = $sentencia->execute([
+            ":userId" => $_SESSION['user']['id'] ?? null,
+            ":nombre" => $nombre_etiqueta, 
+            ":color" => $color
+        ]);
 
         if ($ok) {
             $_SESSION["mensaje"] = "Etiqueta creada con éxito";
 
-            // Registrar historial
             if (isset($_SESSION['user']['id'])) {
                 $this->historial->add($_SESSION['user']['id'], 'create', "Creó la etiqueta '$nombre_etiqueta'");
             }
-
             return true;
         } else {
             $_SESSION["error"] = "Error al crear la etiqueta";

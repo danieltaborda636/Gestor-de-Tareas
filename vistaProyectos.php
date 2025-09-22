@@ -12,7 +12,7 @@ if (!isset($_SESSION['usuario_id'])) {
 $usuario = $_SESSION['user'];
 
 // Obtener todos los proyectos
-$proyectos = Projects::all();
+$proyectos = Projects::getByUser($usuario['id'], $usuario['rol']);
 ?>
 
 <!DOCTYPE html>

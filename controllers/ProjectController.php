@@ -1,38 +1,49 @@
 <?php
-require_once __DIR__ . "/../models/Project.php"; // Incluye el modelo Project
+require_once __DIR__ . "/../models/Project.php"; 
 
-// Comprueba si se pasó el parámetro 'action' por GET
+session_start();
+
+// Validar que el usuario esté logueado
+if (!isset($_SESSION['user'])) {
+    header("Location: ../login.php?error=Debes iniciar sesión");
+    exit;
+}
+
+$usuario = $_SESSION['user']; // Contiene id, nombre, rol, etc.
+
 if (isset($_GET['action'])) {
-    $action = $_GET['action']; // Acción a realizar: create, update, delete
+    $action = $_GET['action'];
 
     switch ($action) {
         case "create":
-            // Si la acción es 'create' se espera el metodo POST con 'name'
             if (!empty($_POST['name'])) {
-                Projects::create($_POST['name'], $_POST['description'], 1); // Llama a Project::create con los datos recibidos (owner_id=1 por simplicidad)
-            }
+                $name        = trim($_POST['name']);
+                $description = trim($_POST['description']);
+                $owner_id    = $usuario['id']; // 👈 guarda el dueño real
 
-            header("Location: ../vistaProyectos.php"); // Redirige al listado
+                Projects::create($name, $description, $owner_id);
+            }
+            header("Location: ../vistaProyectos.php");
             break;
 
         case "update":
-            // Si la acción es 'update' se espera el metodo POST con 'id'
             if (!empty($_POST['id'])) {
-                Projects::update($_POST['id'], $_POST['name'], $_POST['description']); // Llama a Project::update con los datos recibidos
+                $id          = (int)$_POST['id'];
+                $name        = trim($_POST['name']);
+                $description = trim($_POST['description']);
+
+                Projects::update($id, $name, $description);
             }
-            
-            header("Location: ../vistaProyectos.php"); // Redirige al listado
+            header("Location: ../vistaProyectos.php");
             break;
 
         case "delete":
-            // Para eliminar se espera un id en GET (ej: ?action=delete&id=3)
             if (isset($_GET['id'])) {
-                Projects::delete($_GET['id']); // Llama al método delete
+                $id = (int)$_GET['id'];
+                Projects::delete($id);
             }
-            
-            header("Location: ../vistaProyectos.php"); // Redirige al listado
+            header("Location: ../vistaProyectos.php");
             break;
     }
 }
-
 ?>

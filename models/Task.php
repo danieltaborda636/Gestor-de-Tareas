@@ -24,24 +24,20 @@ class Task {
 
     // Crear nueva tarea
     public function create($data) {
-        // Obtener la fecha actual en formato 'Y-m-d'
         $hoy = date('Y-m-d');
 
-        // Validar que las fechas no sean anteriores a hoy
         if (!empty($data['start_date']) && $data['start_date'] < $hoy) {
             throw new Exception("La fecha de inicio no puede ser anterior a hoy.");
         }
-
         if (!empty($data['due_date']) && $data['due_date'] < $hoy) {
             throw new Exception("La fecha de fin no puede ser anterior a hoy.");
         }
 
-        // Normalizar valores opcionales
-        $data['assignee_id']    = !empty($data['assignee_id']) ? $data['assignee_id'] : null;
-        $data['project_id']     = !empty($data['project_id']) ? $data['project_id'] : null;
-        $data['parent_task_id'] = !empty($data['parent_task_id']) ? $data['parent_task_id'] : null;
-        $data['start_date']     = !empty($data['start_date']) ? $data['start_date'] : null;
-        $data['due_date']       = !empty($data['due_date']) ? $data['due_date'] : null;
+        $data['assignee_id']     = !empty($data['assignee_id']) ? $data['assignee_id'] : null;
+        $data['project_id']      = !empty($data['project_id']) ? $data['project_id'] : null;
+        $data['parent_task_id']  = !empty($data['parent_task_id']) ? $data['parent_task_id'] : null;
+        $data['start_date']      = !empty($data['start_date']) ? $data['start_date'] : null;
+        $data['due_date']        = !empty($data['due_date']) ? $data['due_date'] : null;
         $data['recurrence_rule'] = !empty($data['recurrence_rule']) ? $data['recurrence_rule'] : null;
 
         $sql = "INSERT INTO {$this->table} 
@@ -72,49 +68,43 @@ class Task {
         return $result;
     }
 
-    // Obtener todas las tareas
-    public function all() {
-        $sql = "SELECT t.*, u.nombre_usuario AS assignee, p.name AS project 
-                FROM {$this->table} t
-                LEFT JOIN usuarios u ON t.assignee_id = u.id
-                LEFT JOIN projects p ON t.project_id = p.id
-                ORDER BY t.created_at DESC";
-        return $this->conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    // Obtener tareas por usuario
-    public function getByUser($userId) {
-        $sql = "SELECT t.*, 
-                    p.name AS project_name,
-                    tp.title AS parent_title
+    // Obtener tareas por usuario y rol
+    public function getByUser($userId, $rol) {
+        $sql = "SELECT t.*, p.name AS project_name, tp.title AS parent_title, u.nombre_usuario as creador_nombre
                 FROM tasks t
                 LEFT JOIN projects p ON t.project_id = p.id
                 LEFT JOIN tasks tp ON t.parent_task_id = tp.id
-                WHERE t.creator_id = :userId OR t.assignee_id = :userId
-                ORDER BY t.created_at DESC";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([':userId' => $userId]);
+                LEFT JOIN usuarios u ON t.creator_id = u.id";
+
+        if ($rol === 'admin') {
+            $sql .= " ORDER BY t.created_at DESC";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute();
+        } else {
+            $sql .= " WHERE t.creator_id = :userId OR t.assignee_id = :userId ORDER BY t.created_at DESC";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([':userId' => $userId]);
+        }
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Buscar una tarea por id
-    public function find($id) {
-        $sql = "SELECT * FROM {$this->table} WHERE id = :id";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([":id" => $id]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
-
-    public function search($userId, $filtros) {
-        $sql = "SELECT t.*, 
-                    p.name AS project_name,
-                    tp.title AS parent_title
-                FROM tasks t
-                LEFT JOIN projects p ON t.project_id = p.id
-                LEFT JOIN tasks tp ON t.parent_task_id = tp.id
-                WHERE (t.creator_id = :userId OR t.assignee_id = :userId)";
+    // Buscar tareas con filtros según rol
+    public function search($userId, $filtros, $rol) {
+        $sql = "SELECT t.*, p.name AS project_name, tp.title AS parent_title, u.nombre_usuario as creador_nombre
+            FROM tasks t
+            LEFT JOIN projects p ON t.project_id = p.id
+            LEFT JOIN tasks tp ON t.parent_task_id = tp.id
+            LEFT JOIN usuarios u ON t.creator_id = u.id";
         
-        $params = [':userId' => $userId];
+        $params = [];
+
+        if ($rol !== 'admin') {
+            $sql .= " WHERE (t.creator_id = :userId OR t.assignee_id = :userId)";
+            $params[':userId'] = $userId;
+        } else {
+            $sql .= " WHERE 1=1"; // admin ve todo
+        }
 
         if (!empty($filtros['q'])) {
             $sql .= " AND (t.title LIKE :q OR t.description LIKE :q)";
@@ -152,28 +142,39 @@ class Task {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    // Buscar una tarea por id
+    public function find($id) {
+        $sql = "SELECT t.*, u1.nombre_usuario AS creador_nombre, u2.nombre_usuario AS asignado_nombre, p.name AS proyecto_nombre, tp.title AS parent_title
+            FROM {$this->table} t
+            LEFT JOIN usuarios u1 ON t.creator_id = u1.id
+            LEFT JOIN usuarios u2 ON t.assignee_id = u2.id
+            LEFT JOIN projects p ON t.project_id = p.id
+            LEFT JOIN tasks tp ON t.parent_task_id = tp.id
+            WHERE t.id = :id";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([":id" => $id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 
-    // Actualizar tarea
+    // Actualizar
     public function update($id, $data, $usuarioId) {
-        // Obtener la fecha actual en formato 'Y-m-d'
         $hoy = date('Y-m-d');
 
-        // Validar que las fechas no sean anteriores a hoy
         if (!empty($data['start_date']) && $data['start_date'] < $hoy) {
             throw new Exception("La fecha de inicio no puede ser anterior a hoy.");
         }
-
         if (!empty($data['due_date']) && $data['due_date'] < $hoy) {
             throw new Exception("La fecha de fin no puede ser anterior a hoy.");
         }
         
-        // Normalizar valores opcionales
-        $data['assignee_id']    = !empty($data['assignee_id']) ? $data['assignee_id'] : null;
-        $data['project_id']     = !empty($data['project_id']) ? $data['project_id'] : null;
-        $data['parent_task_id'] = !empty($data['parent_task_id']) ? $data['parent_task_id'] : null;
-        $data['start_date']     = !empty($data['start_date']) ? $data['start_date'] : null;
-        $data['due_date']       = !empty($data['due_date']) ? $data['due_date'] : null;
+        $data['assignee_id']     = !empty($data['assignee_id']) ? $data['assignee_id'] : null;
+        $data['project_id']      = !empty($data['project_id']) ? $data['project_id'] : null;
+        $data['parent_task_id']  = !empty($data['parent_task_id']) ? $data['parent_task_id'] : null;
+        $data['start_date']      = !empty($data['start_date']) ? $data['start_date'] : null;
+        $data['due_date']        = !empty($data['due_date']) ? $data['due_date'] : null;
         $data['recurrence_rule'] = !empty($data['recurrence_rule']) ? $data['recurrence_rule'] : null;
+
         $sql = "UPDATE {$this->table} 
                 SET title = :title, 
                     description = :description, 
@@ -213,7 +214,7 @@ class Task {
         return $result;
     }
 
-    // Eliminar tarea
+    // Eliminar
     public function delete($id, $usuarioId) {
         $task = $this->find($id);
         $sql = "DELETE FROM {$this->table} WHERE id = :id";
@@ -229,10 +230,17 @@ class Task {
 
     // Obtener subtareas de una tarea
     public function getSubtasks($taskId) {
-        $sql = "SELECT * FROM {$this->table} WHERE parent_task_id = :taskId ORDER BY created_at ASC";
+        $sql = "SELECT t.*, u1.nombre_usuario AS creador_nombre, u2.nombre_usuario AS asignado_nombre, p.name AS proyecto_nombre, tp.title AS parent_title
+            FROM {$this->table} t
+            LEFT JOIN usuarios u1 ON t.creator_id = u1.id
+            LEFT JOIN usuarios u2 ON t.assignee_id = u2.id
+            LEFT JOIN projects p ON t.project_id = p.id
+            LEFT JOIN tasks tp ON t.parent_task_id = tp.id
+            WHERE t.parent_task_id = :taskId
+            ORDER BY t.created_at ASC";
+        
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([":taskId" => $taskId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
 }

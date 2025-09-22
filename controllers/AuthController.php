@@ -2,7 +2,7 @@
 // controllers/AuthController.php
 // Controlador para manejar registro, login, sesión y "recordarme" con tokens (PDO).
 
-session_start(); // Necesario para $_SESSION
+session_start();
 
 // --- Dependencias ---
 require_once __DIR__ . '/../config/Database.php';
@@ -10,7 +10,7 @@ require_once __DIR__ . '/../models/User.php';
 
 // --- Conexión a BD ---
 $database = new Databasee();
-$db = $database->getConnection(); // devuelve PDO
+$db = $database->getConnection();
 $userModel = new User($db);
 
 // --- Funciones auxiliares ---
@@ -26,8 +26,7 @@ function set_flash($type, $message) {
     $_SESSION['flash'] = ['type' => $type, 'message' => $message];
 }
 
-// --- Determinar acción ---
-$action = isset($_GET['action']) ? $_GET['action'] : '';
+$action = $_GET['action'] ?? '';
 
 // =====================================================
 // --- REGISTRO DE USUARIO ---
@@ -35,11 +34,10 @@ $action = isset($_GET['action']) ? $_GET['action'] : '';
 if ($action === 'register') {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') redirect_login();
 
-    $nombre   = isset($_POST['userName']) ? trim($_POST['userName']) : '';
-    $correo   = isset($_POST['userEmail']) ? trim($_POST['userEmail']) : '';
-    $password = isset($_POST['userPassword']) ? $_POST['userPassword'] : '';
+    $nombre   = trim($_POST['userName'] ?? '');
+    $correo   = trim($_POST['userEmail'] ?? '');
+    $password = $_POST['userPassword'] ?? '';
 
-    // Validaciones
     if ($nombre === '' || $correo === '' || $password === '') {
         set_flash('error', 'Por favor completa todos los campos.');
         redirect_login();
@@ -54,35 +52,30 @@ if ($action === 'register') {
     }
 
     // Verificar si el correo ya existe
-    $existing = $userModel->findByEmail($correo);
-    if ($existing) {
-        set_flash('error', 'La cuenta ya existe (correo registrado).');
+    if ($userModel->findByEmail($correo)) {
+        set_flash('error', 'El correo ya está registrado.');
         redirect_login();
     }
 
-    // Hashear contraseña
     $hash = password_hash($password, PASSWORD_DEFAULT);
 
-    // Crear usuario
-    $createResult = $userModel->create($nombre, $correo, $hash);
-
-    if ($createResult) {
-        // Obtener ID del usuario creado
+    if ($userModel->create($nombre, $correo, $hash)) {
         $newUserId = $db->lastInsertId();
 
-        session_regenerate_id(true); // Seguridad
+        session_regenerate_id(true);
         $_SESSION['usuario_id'] = $newUserId;
         $_SESSION['user'] = [
             'id'          => $newUserId,
             'nombre'      => $nombre,
             'correo'      => $correo,
-            'foto_perfil' => 'assets/uploads/default.jpeg'
+            'foto_perfil' => 'assets/uploads/default.jpeg',
+            'rol'         => 'miembro' // siempre al registrar
         ];
 
-        set_flash('success', 'Usuario registrado correctamente. ¡Bienvenido!');
+        set_flash('success', 'Usuario registrado correctamente.');
         redirect_home();
     } else {
-        set_flash('error', 'Ocurrió un error al registrar el usuario.');
+        set_flash('error', 'Error al registrar el usuario.');
         redirect_login();
     }
 }
@@ -93,28 +86,22 @@ if ($action === 'register') {
 elseif ($action === 'login') {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') redirect_login();
 
-    $correo   = isset($_POST['userEmail']) ? trim($_POST['userEmail']) : '';
-    $password = isset($_POST['userPassword']) ? $_POST['userPassword'] : '';
+    $correo   = trim($_POST['userEmail'] ?? '');
+    $password = $_POST['userPassword'] ?? '';
 
     if ($correo === '' || $password === '') {
-        set_flash('error', 'Por favor completa todos los campos.');
+        set_flash('error', 'Completa todos los campos.');
         redirect_login();
     }
     if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
-        set_flash('error', 'El correo no tiene un formato válido.');
+        set_flash('error', 'Correo inválido.');
         redirect_login();
     }
 
-    // Verificar credenciales
     $user = $userModel->verifyCredentials($correo, $password);
 
     if ($user === false) {
-        $exists = $userModel->findByEmail($correo);
-        if (!$exists) {
-            set_flash('error', 'El correo no está registrado.');
-        } else {
-            set_flash('error', 'Contraseña incorrecta.');
-        }
+        set_flash('error', 'Credenciales incorrectas.');
         redirect_login();
     } else {
         session_regenerate_id(true);
@@ -123,31 +110,9 @@ elseif ($action === 'login') {
             'id'          => $user['id'],
             'nombre'      => $user['nombre_usuario'],
             'correo'      => $user['correo'],
-            'foto_perfil' => !empty($user['foto_perfil']) ? $user['foto_perfil'] : 'assets/uploads/default.jpeg'
+            'foto_perfil' => $user['foto_perfil'] ?? 'assets/uploads/default.jpeg',
+            'rol'         => $user['rol'] // 👈 importante: guardar el rol en sesión
         ];
-
-        // =========================================
-        // --- "Recordarme" con token ---
-        // =========================================
-        if (isset($_POST['remember_me']) && $_POST['remember_me'] === 'on') {
-            $token = bin2hex(random_bytes(32));
-
-            $sql ="INSERT INTO tokens (user_id, token, expiracion, creado_en) VALUES (:usuario_id, :token, DATE_ADD(NOW(), INTERVAL 30 DAY), NOW())";
-
-            $stmt = $db->prepare($sql);
-            $stmt->execute([
-                ":usuario_id" => $user['id'],
-                ":token"      => $token
-            ]);
-
-            setcookie('remember_me', $token, [
-                'expires'  => time() + 60*60*24*30, // 30 días
-                'path'     => '/',
-                'secure'   => false,  // cámbialo a true si usas HTTPS
-                'httponly' => true,
-                'samesite' => 'Strict'
-            ]);
-        }
 
         set_flash('success', 'Sesión iniciada correctamente.');
         redirect_home();

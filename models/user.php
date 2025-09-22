@@ -10,10 +10,10 @@ class User {
         $this->conn = $db; // $db es un objeto PDO
     }
 
-    // Crear nuevo usuario
+    // Crear nuevo usuario (siempre como miembro por defecto)
     public function create($nombre, $correo, $passwordHash) {
-        $sql = "INSERT INTO {$this->table} (nombre_usuario, correo, contrasena, foto_perfil) 
-                VALUES (:nombre, :correo, :contrasena, :foto)";
+        $sql = "INSERT INTO {$this->table} (nombre_usuario, correo, contrasena, foto_perfil, rol) 
+                VALUES (:nombre, :correo, :contrasena, :foto, 'miembro')";
         $stmt = $this->conn->prepare($sql);
 
         $fotoDefecto = "assets/uploads/default.jpeg";
