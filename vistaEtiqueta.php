@@ -175,7 +175,7 @@ $etiquetas = $etiquetaModel->getByUser($usuario['id'], $usuario['rol']);
                             <span><i class="fas fa-circle" style="color:<?= htmlspecialchars($etiqueta["color"]) ?>;"></i></span>
                             <form action="./views/etiquetas/eliminarEtiqueta.php" method="POST">
                                 <input type="hidden" name="id" value="<?= htmlspecialchars($etiqueta["id"]) ?>">
-                                <button type="submit">Eliminar</button>
+                                <button class="btn-eliminar" type="submit">Eliminar</button>
                             </form>
                         </li>
                     <?php endforeach ?>

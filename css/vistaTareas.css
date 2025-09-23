@@ -79,6 +79,119 @@ a.button-link:active {
     transform: translateY(0);
 }
 
+/* Lista de subtareas */
+.subtareas {
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px 15px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
 
+.subtareas:hover {
+    background: #f9fcff;
+    transform: translateY(-2px);
+}
 
+/* Título de la subtarea */
+.subtareas strong {
+    font-size: 15px;
+    color: #2c3e50;
+}
 
+/* Estado de la subtarea */
+.subtareas .estado {
+    font-size: 13px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 6px;
+    margin-left: 8px;
+    color: white;
+}
+
+/* Colores para estados */
+.subtareas .estado.low { background: #28a745; }     /* Verde */
+.subtareas .estado.medium { background: #ffc107; }  /* Amarillo */
+.subtareas .estado.high { background: #fd7e14; }    /* Naranja */
+.subtareas .estado.urgent { background: #dc3545; }  /* Rojo */
+
+/* Info secundaria */
+.subtareas small {
+    font-size: 12px;
+    color: #555;
+}
+
+/* Acciones */
+.subtareas a {
+    font-size: 13px;
+    margin-right: 10px;
+    text-decoration: none;
+    color: #007BFF;
+    transition: color 0.2s;
+}
+
+.subtareas a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+/* Contenedor de la lista */
+.comentarios {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+/* Cada comentario */
+.comentarios li {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px 15px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: background 0.2s ease;
+}
+
+.comentarios li:hover {
+    background: #f0f8ff;
+}
+
+/* Nombre del usuario */
+.comentarios strong {
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+/* Texto del comentario */
+.comentarios span.body {
+    font-size: 15px;
+    color: #333;
+}
+
+/* Fecha */
+.comentarios em {
+    font-size: 12px;
+    color: #777;
+}
+
+/* Enlaces de acción (editar/eliminar) */
+.comentarios a {
+    font-size: 13px;
+    margin-right: 10px;
+    text-decoration: none;
+    color: #007BFF;
+    transition: color 0.2s;
+}
+
+.comentarios a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}

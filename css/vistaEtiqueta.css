@@ -93,9 +93,50 @@ form label {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.etiquetas2{
-    list-style-type: none; /* Quita las viñetas */
-    padding-left: 0;       /* Elimina el espacio extra a la izquierda */
+/* Contenedor de cada etiqueta */
+.etiquetas2 {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 6px 12px;
+    margin: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.etiquetas2:hover {
+    background: #eef3f8;
+    transform: translateY(-2px);
+}
+
+/* Icono de color */
+.etiquetas2 i {
+    font-size: 12px;
+}
+
+/* Botón eliminar */
+.btn-eliminar {
+    background: var(--primary-color);;
+    border: none;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 12px;
+    padding: 4px 8px;
+    margin-left: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.btn-eliminar:hover {
+    background: var(--primary-color);
+    transform: scale(1.05);
 }
 
 .lista-etiquetas{

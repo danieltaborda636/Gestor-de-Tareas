@@ -146,7 +146,7 @@ $comments = $commentModel->allByTask($task['id']);
         <?php if (!empty($subtasks)): ?>
             <ul>
                 <?php foreach ($subtasks as $s): ?>
-                    <li>
+                    <li class="subtareas">
                         <strong><?= htmlspecialchars($s['title']) ?></strong> (<?= htmlspecialchars($s['status']) ?>) <br>
                         <small>
                             Proyecto: <?= htmlspecialchars($s['proyecto_nombre'] ?? "—") ?> |
@@ -175,14 +175,18 @@ $comments = $commentModel->allByTask($task['id']);
         </form>
 
         <?php if (!empty($comments)): ?>
-            <ul>
+            <ul class="comentarios">
                 <?php foreach ($comments as $c): ?>
                     <li>
                         <strong><?= htmlspecialchars($c['nombre_usuario']) ?>:</strong> 
                         <?= htmlspecialchars($c['body']) ?>
                         <em>(<?= date("d-m-Y H:i", strtotime($c['created_at'])) ?>)</em>
                         <?php if ($c['user_id'] == $userId): ?>
-                            <a href="controllers/CommentController.php?action=delete&id=<?= $c['id'] ?>&task_id=<?= $task['id'] ?>">Eliminar</a>
+                            <!-- Botón editar -->
+                            <a href="controllers/CommentController.php?action=edit&id=<?= $c['id'] ?>&task_id=<?= $task['id'] ?>">Editar</a> 
+                            <!-- Botón eliminar -->
+                            <a href="controllers/CommentController.php?action=delete&id=<?= $c['id'] ?>&task_id=<?= $task['id'] ?>" 
+                               onclick="return confirm('¿Seguro que deseas eliminar este comentario?')">Eliminar</a>
                         <?php endif; ?>
                     </li>
                 <?php endforeach; ?>
