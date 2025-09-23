@@ -22,11 +22,11 @@ if (!$tarea) {
     echo "<p>Error: Tarea no encontrada.</p>";
     exit();
 }
-
+$usuario = $_SESSION['user'];
 // Obtener proyectos, usuarios y etiquetas
 $projects = $db->query("SELECT id, name FROM projects ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
 $users = $db->query("SELECT id, nombre_usuario FROM usuarios ORDER BY nombre_usuario")->fetchAll(PDO::FETCH_ASSOC);
-$labels = $etiquetaModel->all();
+$labels = $etiquetaModel->getByUser($usuario['id'], $usuario['rol']);
 $taskLabels = $etiquetaModel->getByTask($id);
 $selected = array_column($taskLabels, 'id');
 ?>

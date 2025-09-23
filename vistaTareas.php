@@ -140,7 +140,7 @@ $tareas = $taskModel->search($userId, $filtros, $rol);
                             <td><?= htmlspecialchars($t['creador_nombre'] ?? '—') ?></td>
                             <td>
                                 <a href="verTarea.php?id=<?= $t['id'] ?>">Ver</a> |
-                                <a href="#" class="editar-btn" data-id="<?= $t['id'] ?>">Editar</a> |
+                                <a href="editar.php?id=<?= $t['id'] ?>" class="editar-btn" data-id="<?= $t['id'] ?>">Editar</a> |
                                 <?php if ($rol === 'admin' || $t['creator_id'] == $userId): ?>
                                     <a href="controllers/TaskController.php?action=delete&id=<?= $t['id'] ?>" onclick="return confirm('¿Seguro que deseas eliminar esta tarea?')">Eliminar</a>
                                 <?php else: ?>
