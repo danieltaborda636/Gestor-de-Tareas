@@ -2,6 +2,22 @@
 session_start();
 require_once __DIR__ . '/config/Database.php';
 require_once __DIR__ . '/models/User.php';
+
+// Validar que sea admin
+if (!isset($_SESSION['user']) || $_SESSION['user']['rol'] !== 'admin') {
+    header("Location: inicio.php");
+    exit();
+}
+
+$database = new Databasee();
+$db = $database->getConnection();
+$userModel = new User($db);
+
+// Listar usuarios
+$usuarios = $userModel->getAllUsers();
+
+require_once __DIR__ . '/config/Database.php';
+require_once __DIR__ . '/models/User.php';
 require_once __DIR__ . '/models/Task.php';
 
 // ===============================
@@ -258,49 +274,41 @@ try {
                     </div>
                 </div>
             </header>
+<div class="container mt-4">
+    <h2>Administración de Usuarios</h2>
 
-            <section class="overview-section">
-                <h2>Resumen</h2>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <p>Total de Tareas</p>
-                        <span><?= $totalTareas ?></span>
-                    </div>
-                    <div class="stat-card">
-                        <p>Completadas Esta Semana</p>
-                        <span><?= $completadasSemana ?></span>
-                    </div>
-                    <div class="stat-card">
-                        <p>Próximos Vencimientos</p>
-                        <span><?= $proximosVencimientos ?></span>
-                    </div>
-                    <div class="project-overview-card">
-                        <h3>Vista General del Proyecto</h3>
-                        <div class="project-progress">
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 99%;"></div>
-                            </div>
-                            <span>99%</span>
-                        </div>
-                        <p>Rediseño de Sitio Web</p>
-                    </div>
-                </div>
-            </section>
+    <a href="crearUsuario.php" class="btn btn-success mb-3">+ Crear Usuario</a>
 
-            <section class="my-tasks-section">
-                
-                    <a id="CrearTarea" href="http://localhost/proyecto-1/Gestor-de-Tareas/vistaCrearTareas.php">+ Crear Nueva Tarea</a>
-                
-            </section>
-
-            <section class="notifications-section">
-                <h3>Notificaciones</h3>
-                <div class="notification-item">
-                    <p>Nuevo comentario en "Planificación del Proyecto"</p>
-                    <span>hace 2 horas</span>
-                </div>
-            </section>
-        </main>
-    </div>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre de Usuario</th>
+                <th>Correo</th>
+                <th>Rol</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($usuarios as $u): ?>
+            <tr>
+                <td><?= htmlspecialchars($u['id']) ?></td>
+                <td><?= htmlspecialchars($u['nombre_usuario']) ?></td>
+                <td><?= htmlspecialchars($u['correo']) ?></td>
+                <td><?= htmlspecialchars($u['rol']) ?></td>
+                <td>
+                    <a href="editarUsuario.php?id=<?= $u['id'] ?>" class="btn btn-warning btn-sm">Editar</a>
+                    <a href="controllers/UserController.php?action=delete&id=<?= $u['id'] ?>" 
+                       class="btn btn-danger btn-sm"
+                       onclick="return confirm('¿Seguro que deseas eliminar este usuario?')">
+                       Eliminar
+                    </a>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+</div>
+ <a href="javascript:history.back()" class="button-link">Volver</a>
 </body>
 </html>

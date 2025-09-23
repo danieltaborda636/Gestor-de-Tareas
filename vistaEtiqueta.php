@@ -76,7 +76,9 @@ $etiquetas = $etiquetaModel->getByUser($usuario['id'], $usuario['rol']);
                 <li><a href="vistaProyectos.php"><i class="icon-projects"></i> Proyectos</a></li>
                 <li><a href="vistaEtiqueta.php"><i class="icon-tags"></i> Etiquetas</a></li>
                 <li><a href="historial.php"><i class="icon-history"></i> Historial</a></li>
-                <li><a href="#"><i class="icon-admin"></i> Administración</a></li>
+                <?php if ($usuario['rol'] === 'admin'): ?>
+                    <li><a href="./vistaUsuarios.php"><i class="icon-admin"></i> Administración</a></li>
+                <?php endif; ?>
             </ul>
         </nav>
     </aside>
@@ -173,7 +175,7 @@ $etiquetas = $etiquetaModel->getByUser($usuario['id'], $usuario['rol']);
                         <li class="etiquetas2">
                             <?= htmlspecialchars($etiqueta["nombre_etiqueta"]) ?>
                             <span><i class="fas fa-circle" style="color:<?= htmlspecialchars($etiqueta["color"]) ?>;"></i></span>
-                            <form action="./views/etiquetas/eliminarEtiqueta.php" method="POST">
+                            <form action="./views/etiquetas/eliminarEtiqueta.php" method="POST" onsubmit="return confirmarEliminarEtiqueta();">
                                 <input type="hidden" name="id" value="<?= htmlspecialchars($etiqueta["id"]) ?>">
                                 <button class="btn-eliminar" type="submit">Eliminar</button>
                             </form>
@@ -187,5 +189,11 @@ $etiquetas = $etiquetaModel->getByUser($usuario['id'], $usuario['rol']);
         <a href="javascript:history.back()" class="button-link">Volver</a>
     </main>
 </div>
+
+<script>
+function confirmarEliminarEtiqueta() {
+    return confirm("⚠️ ¿Seguro que deseas eliminar esta etiqueta?");
+}
+</script>
 </body>
 </html>

@@ -44,6 +44,9 @@ if (!empty($task['parent_task_id'])) {
 
 // Comentarios
 $comments = $commentModel->allByTask($task['id']);
+
+//archivos
+$attachments = $taskModel->getAttachments($task['id']);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -67,9 +70,7 @@ $comments = $commentModel->allByTask($task['id']);
                 <li><a href="vistaProyectos.php"><i class="icon-projects"></i> Proyectos</a></li>
                 <li><a href="vistaEtiqueta.php"><i class="icon-tags"></i> Etiquetas</a></li>
                 <li><a href="historial.php"><i class="icon-history"></i> Historial</a></li>
-                <?php if ($rol === 'admin'): ?>
-                    <li><a href="#"><i class="icon-admin"></i> Administración</a></li>
-                <?php endif; ?>
+                
             </ul>
         </nav>
     </aside>
@@ -193,6 +194,34 @@ $comments = $commentModel->allByTask($task['id']);
             </ul>
         <?php else: ?>
             <p>No hay comentarios aún.</p>
+        <?php endif; ?>
+        <hr>
+        <h3>Archivos adjuntos</h3>
+
+        <form method="POST" action="controllers/TaskController.php?action=uploadAttachment" enctype="multipart/form-data">
+            <input type="hidden" name="task_id" value="<?= $task['id'] ?>">
+            <input type="file" name="attachment" required>
+            <button type="submit">Subir archivo</button>
+        </form>
+
+        <?php if (!empty($attachments)): ?>
+            <ul>
+                <?php foreach ($attachments as $a): ?>
+                    <li>
+                        📎 <a href="<?= htmlspecialchars(str_replace(__DIR__, '', $a['path'])) ?>" target="_blank">
+                            <?= htmlspecialchars($a['filename']) ?>
+                        </a> (<?= round($a['size'] / 1024, 2) ?> KB) 
+                        - Subido por <?= htmlspecialchars($a['nombre_usuario']) ?>
+                        <em>(<?= date("d-m-Y H:i", strtotime($a['created_at'])) ?>)</em>
+                        <?php if ($rol === 'admin' || $a['user_id'] == $userId): ?>
+                            <a href="controllers/TaskController.php?action=deleteAttachment&id=<?= $a['id'] ?>&task_id=<?= $task['id'] ?>" 
+                            onclick="return confirm('¿Eliminar este archivo?')" style="color:red;">🗑 Eliminar</a>
+                        <?php endif; ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        <?php else: ?>
+            <p>No hay archivos adjuntos.</p>
         <?php endif; ?>
 
         <br>

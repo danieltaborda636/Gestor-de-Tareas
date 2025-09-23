@@ -62,7 +62,9 @@ $usuario = $_SESSION['user'];
                 <li class="active"><a href="vistaProyectos.php"><i class="icon-projects"></i> Proyectos</a></li>
                 <li><a href="vistaEtiqueta.php"><i class="icon-tags"></i> Etiquetas</a></li>
                 <li><a href="historial.php"><i class="icon-history"></i> Historial</a></li>
-                <li><a href="#"><i class="icon-admin"></i> Administración</a></li>
+                <?php if ($usuario['rol'] === 'admin'): ?>
+                    <li><a href="./vistaUsuarios.php"><i class="icon-admin"></i> Administración</a></li>
+                <?php endif; ?>
             </ul>
         </nav>
     </aside>

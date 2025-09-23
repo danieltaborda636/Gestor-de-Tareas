@@ -81,7 +81,7 @@ if ($usuario['rol'] === 'admin') {
                 <li><a href="vistaEtiqueta.php"><i class="icon-tags"></i> Etiquetas</a></li>
                 <li><a href="historial.php"><i class="icon-history"></i> Historial</a></li>
                 <?php if ($usuario['rol'] === 'admin'): ?>
-                    <li><a href="#"><i class="icon-admin"></i> Administración</a></li>
+                    <li><a href="./vistaUsuarios.php"><i class="icon-admin"></i> Administración</a></li>
                 <?php endif; ?>
             </ul>
         </nav>
@@ -100,7 +100,7 @@ if ($usuario['rol'] === 'admin') {
 
         <h2>Crear tarea</h2>
 
-        <form method="POST" action="controllers/TaskController.php?action=create">
+        <form method="POST" action="controllers/TaskController.php?action=create" enctype="multipart/form-data">
             <!-- ✅ creator_id obligatorio -->
             <input type="hidden" name="creator_id" value="<?= htmlspecialchars($usuario['id']) ?>">
 
@@ -172,6 +172,9 @@ if ($usuario['rol'] === 'admin') {
                 <option value="monthly">Mensual</option>
             </select><br>
 
+            <label>Archivos adjuntos:</label>
+            <input type="file" name="attachments[]" multiple>
+            <br>
             <button type="submit">Guardar</button>
         </form>
 

@@ -1,84 +1,115 @@
 <?php
-// controllers/UserController.php
-// Este controlador se encarga de actualizar los datos del usuario desde el perfil.
+require_once __DIR__ . '/../config/Database.php';
+require_once __DIR__ . '/../models/User.php';
 
-session_start();
-
-// Incluimos la configuración de la base de datos
-require_once __DIR__ . '/../config/database.php';
-
-// Incluimos el modelo User (asegúrate de que existe y que su clase se llama User)
-require_once __DIR__ . '/../models/usermodelo.php';
-
-class UserController {
-
-    public function update() {
-        // --- 1) Crear conexión con la BD ---
-        $database = new Databasee();
-        $db = $database->getConnection();
-
-        // --- 2) Crear instancia del modelo ---
-        $user = new User($db);
-
-        // --- 3) Recibir datos del formulario ---
-        $id = $_POST['id'];
-        $nombre = $_POST['nombre_usuario'];
-        $correo = $_POST['correo'];
-
-        // Si la contraseña está vacía, mandamos null para no modificarla
-        $contrasena = !empty($_POST['contrasena']) ? $_POST['contrasena'] : null;
-
-        // --- 4) Manejo de la foto de perfil ---
-        if (isset($_FILES['foto_perfil']) && $_FILES['foto_perfil']['error'] === UPLOAD_ERR_OK) {
-            // Carpeta donde guardaremos las fotos
-            $carpeta = "../assets/uploads/";
-
-            // Si no existe la carpeta, la creamos con permisos
-            if (!is_dir($carpeta)) {
-                mkdir($carpeta, 0777, true);
-            }
-
-            // Generamos un nombre único para la foto
-            $nombreArchivo = uniqid() . "_" . basename($_FILES['foto_perfil']['name']);
-            $ruta = $carpeta . $nombreArchivo;
-
-            // Movemos la foto desde el temporal a nuestra carpeta
-            move_uploaded_file($_FILES['foto_perfil']['tmp_name'], $ruta);
-
-            // Guardamos la ruta relativa (para usar en el src del <img>)
-            $fotoPerfil = "assets/uploads/" . $nombreArchivo;
-        } else {
-            // Si no subió una nueva foto, dejamos la que ya tenía en la sesión
-            $fotoPerfil = isset($_SESSION['user']['foto_perfil']) ? $_SESSION['user']['foto_perfil'] : "assets/default.png";
-        }
-
-        // --- 5) Guardar cambios en la BD ---
-        $resultado = $user->updateUser($id, $nombre, $correo, $contrasena, $fotoPerfil);
-
-        if ($resultado) {
-            // --- 6) Actualizar también los datos en la sesión ---
-            $_SESSION['user']['id'] = $id;
-            $_SESSION['user']['nombre_usuario'] = $nombre;
-            $_SESSION['user']['correo'] = $correo;
-            $_SESSION['user']['foto_perfil'] = $fotoPerfil;
-
-            // Mensaje de éxito
-            $_SESSION['flash'] = ['type' => 'success', 'message' => 'Usuario actualizado correctamente'];
-        } else {
-            // Mensaje de error
-            $_SESSION['flash'] = ['type' => 'error', 'message' => 'No se pudo actualizar el usuario'];
-        }
-
-        // --- 7) Redirigir de vuelta al perfil ---
-        header("Location: ../inicio.php");
-        exit();
-    }
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
-// --- 8) Ejecutamos la acción update cuando venga desde el formulario ---
-$action = isset($_GET['action']) ? $_GET['action'] : '';
+$database = new Databasee();
+$db = $database->getConnection();
+$userModel = new User($db);
 
-if ($action === 'update') {
-    $controller = new UserController();
-    $controller->update();
+$action = $_GET['action'] ?? $_POST['action'] ?? null;
+
+switch ($action) {
+    // =====================================================
+    // CREAR USUARIO (solo admin)
+    // =====================================================
+    case 'create':
+        if (!isset($_SESSION['user']) || $_SESSION['user']['rol'] !== 'admin') {
+            header("Location: ../inicio.php");
+            exit();
+        }
+
+        $nombre = $_POST['nombre_usuario'] ?? '';
+        $correo = $_POST['correo'] ?? '';
+        $contrasena = $_POST['contrasena'] ?? '';
+        $rol = $_POST['rol'] ?? 'user';
+
+        if ($nombre && $correo && $contrasena) {
+            $userModel->create($nombre, $correo, $contrasena, $rol);
+        }
+
+        header("Location: ../vistaUsuarios.php");
+        exit();
+
+    // =====================================================
+    // EDITAR USUARIO (admin o el propio usuario)
+    // =====================================================
+    case 'update':
+        $id = $_POST['id'] ?? null;
+
+        if (!$id) {
+            header("Location: ../inicio.php");
+            exit();
+        }
+
+        // Validar permisos (admin o dueño de la cuenta)
+        if ($_SESSION['user']['rol'] !== 'admin' && $_SESSION['user']['id'] != $id) {
+            header("Location: ../inicio.php");
+            exit();
+        }
+
+        $nombre = $_POST['nombre_usuario'] ?? '';
+        $correo = $_POST['correo'] ?? '';
+        $contrasena = $_POST['contrasena'] ?? '';
+        $rol = $_POST['rol'] ?? null;
+
+        // Foto de perfil
+        $fotoPerfil = null;
+        if (isset($_FILES['foto_perfil']) && $_FILES['foto_perfil']['error'] === UPLOAD_ERR_OK) {
+            $directorio = __DIR__ . '/../assets/uploads/';
+            if (!is_dir($directorio)) {
+                mkdir($directorio, 0777, true);
+            }
+            $nombreArchivo = uniqid() . "_" . basename($_FILES['foto_perfil']['name']);
+            $rutaArchivo = $directorio . $nombreArchivo;
+
+            if (move_uploaded_file($_FILES['foto_perfil']['tmp_name'], $rutaArchivo)) {
+                $fotoPerfil = "assets/uploads/" . $nombreArchivo;
+            }
+        }
+
+        $userModel->updateUser($id, $nombre, $correo, $contrasena, $rol, $fotoPerfil);
+
+        // Si el usuario actualizó su propio perfil, refrescar sesión
+        if ($_SESSION['user']['id'] == $id) {
+            $_SESSION['user']['nombre'] = $nombre;
+            $_SESSION['user']['correo'] = $correo;
+            if ($fotoPerfil) {
+                $_SESSION['user']['foto_perfil'] = $fotoPerfil;
+            }
+        }
+
+        if ($_SESSION['user']['rol'] === 'admin') {
+            header("Location: ../vistaUsuarios.php");
+        } else {
+            header("Location: ../inicio.php");
+        }
+        exit();
+
+    // =====================================================
+    // ELIMINAR USUARIO (solo admin)
+    // =====================================================
+    case 'delete':
+        if (!isset($_SESSION['user']) || $_SESSION['user']['rol'] !== 'admin') {
+            header("Location: ../inicio.php");
+            exit();
+        }
+
+        $id = $_GET['id'] ?? null;
+        if ($id) {
+            $userModel->deleteUser($id);
+        }
+
+        header("Location: ../vistaUsuarios.php");
+        exit();
+
+    // =====================================================
+    // SI NO HAY ACCIÓN
+    // =====================================================
+    default:
+        header("Location: ../inicio.php");
+        exit();
 }

@@ -243,4 +243,52 @@ class Task {
         $stmt->execute([":taskId" => $taskId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    // 📌 Guardar un archivo en la BD
+    public function addAttachment($taskId, $userId, $file) {
+        $sql = "INSERT INTO attachments (task_id, user_id, filename, path, size, mime, created_at)
+                VALUES (:task_id, :user_id, :filename, :path, :size, :mime, NOW())";
+        $stmt = $this->conn->prepare($sql);
+        return $stmt->execute([
+            ":task_id"  => $taskId,
+            ":user_id"  => $userId,
+            ":filename" => $file['filename'],
+            ":path"     => $file['path'],
+            ":size"     => $file['size'],
+            ":mime"     => $file['mime']
+        ]);
+    }
+
+    // 📌 Obtener adjuntos de una tarea
+    public function getAttachments($taskId) {
+        $sql = "SELECT a.*, u.nombre_usuario 
+                FROM attachments a
+                JOIN usuarios u ON a.user_id = u.id
+                WHERE a.task_id = :taskId
+                ORDER BY a.created_at DESC";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([":taskId" => $taskId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // 📌 Eliminar adjunto
+    public function deleteAttachment($id, $userId, $rol) {
+        // Solo admin o propietario puede eliminar
+        $sql = "SELECT * FROM attachments WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([":id" => $id]);
+        $file = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$file) return false;
+        if ($rol !== 'admin' && $file['user_id'] != $userId) return false;
+
+        // Borrar archivo físico
+        if (file_exists($file['path'])) {
+            unlink($file['path']);
+        }
+
+        $sql = "DELETE FROM attachments WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        return $stmt->execute([":id" => $id]);
+    }
 }
