@@ -27,7 +27,7 @@ class Etiqueta
 
     // Obtener etiquetas según rol
     public function getByUser($userId, $rol) {
-        $sql = "SELECT e.*, u.nombre_usuario as creador_nombre
+        $sql = "SELECT e.*, u.nombre_usuario AS creador_nombre
                 FROM etiquetas e
                 LEFT JOIN usuarios u ON e.user_id = u.id";
 

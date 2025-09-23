@@ -83,36 +83,6 @@ $etiquetas = $etiquetaModel->getByUser($usuario['id'], $usuario['rol']);
 
     <main class="main-content">
         <header class="top-bar">
-            <div class="search-box">
-                <form method="GET" action="vistaTareas.php">
-                    <input type="text" name="q" placeholder="Buscar..." style="width: 150px;" value="<?= htmlspecialchars($_GET['q'] ?? '') ?>">
-                    <i class="icon-search"></i>
-
-                    <select name="priority" class="busquedaSeleccion">
-                        <option value="">-- Prioridad --</option>
-                        <option value="low" <?= ($_GET['priority'] ?? '') == 'low' ? 'selected' : '' ?>>Baja</option>
-                        <option value="medium" <?= ($_GET['priority'] ?? '') == 'medium' ? 'selected' : '' ?>>Media</option>
-                        <option value="high" <?= ($_GET['priority'] ?? '') == 'high' ? 'selected' : '' ?>>Alta</option>
-                        <option value="urgent" <?= ($_GET['priority'] ?? '') == 'urgent' ? 'selected' : '' ?>>Urgente</option>
-                    </select>
-
-                    <select name="status" class="busquedaSeleccion">
-                        <option value="">-- Estado --</option>
-                        <option value="todo" <?= ($_GET['status'] ?? '') == 'todo' ? 'selected' : '' ?>>Por hacer</option>
-                        <option value="in_progress" <?= ($_GET['status'] ?? '') == 'in_progress' ? 'selected' : '' ?>>En progreso</option>
-                        <option value="done" <?= ($_GET['status'] ?? '') == 'done' ? 'selected' : '' ?>>Hecho</option>
-                        <option value="archived" <?= ($_GET['status'] ?? '') == 'archived' ? 'selected' : '' ?>>Archivado</option>
-                    </select>
-
-                    <label style="margin-left: 5px;">Desde:</label>
-                    <input type="date" name="start_date" style="width: 150px; margin-left: 5px;" value="<?= htmlspecialchars($_GET['start_date'] ?? '') ?>">
-                    <label style="margin-left: 5px;">Hasta:</label>
-                    <input type="date" name="due_date" style="width: 150px; margin-left: 5px;" value="<?= htmlspecialchars($_GET['due_date'] ?? '') ?>">
-
-                    <button type="submit" style="margin-left: 5px;">Filtrar</button>
-                    <a href="vistaTareas.php" style="margin-left: 5px;">Limpiar</a>
-                </form>
-            </div>
             <div class="user-actions">
                       <!-- Botón de notificaciones -->
                 <button id="btnNotificaciones" class="btn btn-light">
