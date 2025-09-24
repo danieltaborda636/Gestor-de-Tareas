@@ -154,43 +154,62 @@ try {
                 </div>
                 <div class="user-actions">
                     <!-- Botón de notificaciones -->
-                <button id="btnNotificaciones" class="btn btn-light">
-                    <i class="icon-bell"></i>
-                </button>
+              <!-- Botón de notificaciones -->
+<button id="btnNotificaciones" class="btn btn-light">
+    <i class="icon-bell"></i>
+</button>
 
-                    <!-- Modal -->
-                    <div class="modal fade" id="modalNotificaciones" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="modalLabel">Notificaciones de tareas</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                        </div>
-                        <div class="modal-body" id="contenidoNotificaciones">
-                            <!-- Aquí cargaremos las tareas mediante AJAX -->
-                        </div>
-                        </div>
-                    </div>
-                    </div>
+<!-- Modal de notificaciones -->
+<div class="modal fade" id="modalNotificaciones" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg"><!-- modal-lg para más ancho -->
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalLabel">Notificaciones de tareas</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body" id="contenidoNotificaciones">
+        <!-- Aquí cargaremos las tareas mediante AJAX -->
+      </div>
+    </div>
+  </div>
+</div>
 
-                        <script>
-                        $(document).ready(function(){
-                            $("#btnNotificaciones").click(function(){
-                                $.ajax({
-                                    url: "notificacion.php",
-                                    method: "GET",
-                                    success: function(data){
-                                        $("#contenidoNotificaciones").html(data);
-                                        $("#modalNotificaciones").modal("show");
-                                    },
-                                    error: function(){
-                                        $("#contenidoNotificaciones").html("<p>Error al cargar las notificaciones.</p>");
-                                        $("#modalNotificaciones").modal("show");
-                                    }
-                                });
-                            });
-                        });
-                        </script>
+<!-- Script -->
+<script>
+$(function(){
+  $("#btnNotificaciones").on("click", function(){
+    // Mostrar loading
+    $("#contenidoNotificaciones").html(
+      '<div class="text-center py-4">Cargando notificaciones... <div class="spinner-border spinner-border-sm" role="status"></div></div>'
+    );
+
+    $.ajax({
+      url: "notificacion.php", // mismo nivel que tu vista
+      method: "GET",
+      dataType: "html",
+      success: function(data){
+        $("#contenidoNotificaciones").html(data);
+        var modalEl = document.getElementById("modalNotificaciones");
+        var bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        bsModal.show();
+      },
+      error: function(xhr){
+        let mensaje = "<div class='alert alert-danger'>Error al cargar notificaciones.</div>";
+        if (xhr.responseText) {
+          mensaje += "<pre style='max-height:200px; overflow:auto; font-size:12px;'>" 
+                   + $("<div>").text(xhr.responseText).html() + "</pre>";
+        }
+        $("#contenidoNotificaciones").html(mensaje);
+        var modalEl = document.getElementById("modalNotificaciones");
+        var bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        bsModal.show();
+      }
+    });
+  });
+});
+</script>
+
+
 
                     <div class="menu-container">
                         <i class="icon-settings menu-icon" onclick="toggleMenu()"></i>
