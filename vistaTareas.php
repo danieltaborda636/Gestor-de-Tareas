@@ -26,6 +26,7 @@ $filtros = [
     "assignee_id"=> $_GET['assignee_id'] ?? '',
     "start_date" => $_GET['start_date'] ?? '',
     "due_date"   => $_GET['due_date'] ?? '',
+    "color"      => $_GET['color'] ?? '', // 👈 NUEVO
 ];
 
 $tareas = $taskModel->search($userId, $filtros, $rol);
@@ -87,6 +88,9 @@ $tareas = $taskModel->search($userId, $filtros, $rol);
                     <label style="margin-left: 5px;">Hasta:</label>
                     <input type="date" name="due_date" style="width: 150px; margin-left: 5px;" value="<?= htmlspecialchars($_GET['due_date'] ?? '') ?>">
 
+                    <label style="margin-left: 5px;">Color:</label>
+                    <input type="color" name="color" style="width: 60px; margin-left: 5px;" value="<?= htmlspecialchars($_GET['color'] ?? '') ?>">
+                    
                     <button type="submit" style="margin-left: 5px;">Filtrar</button>
                     <a href="vistaTareas.php" style="margin-left: 5px;">Limpiar</a>
                 </form>
@@ -132,7 +136,7 @@ $tareas = $taskModel->search($userId, $filtros, $rol);
                                     <?= htmlspecialchars($t['title']) ?>
                                 <?php endif; ?>
                             </td>
-                            <td><?= htmlspecialchars($t['description']) ?></td>
+                            <td class="descripcion"><?= htmlspecialchars($t['description']) ?></td>
                             <td><?= htmlspecialchars($t['project_name'] ?? '—') ?></td>
                             <td><?= htmlspecialchars($t['priority']) ?></td>
                             <td><?= htmlspecialchars($t['status']) ?></td>

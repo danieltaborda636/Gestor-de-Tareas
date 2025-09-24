@@ -3,8 +3,8 @@ require_once __DIR__ . "/config/Database.php";
 require_once __DIR__ . "/models/Task.php";
 require_once __DIR__ . "/models/Comment.php";
 require_once __DIR__ . "/models/User.php";
+require_once __DIR__ . "/models/Etiqueta.php";
 
-session_start();
 
 if (!isset($_SESSION['user'])) {
     header("Location: login.php?error=Debes iniciar sesión");
@@ -47,6 +47,10 @@ $comments = $commentModel->allByTask($task['id']);
 
 //archivos
 $attachments = $taskModel->getAttachments($task['id']);
+
+//etiquetas
+$etiquetaModel = new Etiqueta($db);
+$labels = $etiquetaModel->getByTask($task['id']); // 👈 obtiene las etiquetas de la tarea actual
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -97,13 +101,28 @@ $attachments = $taskModel->getAttachments($task['id']);
             <?php endif; ?>
         </h3>
 
-        <p><strong>Descripción:</strong> <?= nl2br(htmlspecialchars($task['description'])) ?></p>
+        <p class="descripcion"><strong>Descripción:</strong> <?= nl2br(htmlspecialchars($task['description'])) ?></p>
         <p><strong>Proyecto:</strong> <?= htmlspecialchars($task['proyecto_nombre'] ?? "—") ?></p>
         <p><strong>Asignada a:</strong> <?= htmlspecialchars($task['asignado_nombre'] ?? "Nadie") ?></p>
         <p><strong>Prioridad:</strong> <?= htmlspecialchars($task['priority']) ?></p>
         <p><strong>Estado:</strong> <?= htmlspecialchars($task['status']) ?></p>
         <p><strong>Inicio:</strong> <?= $task['start_date'] ? date("d-m-Y", strtotime($task['start_date'])) : "—" ?></p>
         <p><strong>Vencimiento:</strong> <?= $task['due_date'] ? date("d-m-Y", strtotime($task['due_date'])) : "—" ?></p>
+        <p><strong>Etiquetas:</strong>
+            <?php if (!empty($labels)): ?>
+                <?php foreach ($labels as $label): ?>
+                    <span style="background: <?= htmlspecialchars($label['color']) ?>; 
+                                color: #fff; 
+                                padding: 3px 8px; 
+                                border-radius: 4px; 
+                                margin-right: 5px;">
+                        <?= htmlspecialchars($label['nombre_etiqueta']) ?>
+                    </span>
+                <?php endforeach; ?>
+            <?php else: ?>
+                — No tiene etiquetas —
+            <?php endif; ?>
+        </p>
         <?php if ($rol === 'admin'): ?>
             <p><strong>Creador:</strong> <?= htmlspecialchars($task['creador_nombre'] ?? "—") ?></p>
         <?php endif; ?>
@@ -154,6 +173,23 @@ $attachments = $taskModel->getAttachments($task['id']);
                             Asignado a: <?= htmlspecialchars($s['asignado_nombre'] ?? "Nadie") ?> |
                             Creador: <?= htmlspecialchars($s['creador_nombre'] ?? "—") ?>
                         </small><br>
+                        <?php 
+                            $subLabels = $etiquetaModel->getByTask($s['id']);
+                            if (!empty($subLabels)): 
+                        ?>
+                            <div style="margin: 4px 0;">
+                                <?php foreach ($subLabels as $sl): ?>
+                                    <span style="background: <?= htmlspecialchars($sl['color']) ?>; 
+                                                color: #fff; 
+                                                padding: 2px 6px; 
+                                                border-radius: 4px; 
+                                                font-size: 12px;">
+                                        <?= htmlspecialchars($sl['nombre_etiqueta']) ?>
+                                    </span>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+
                         <a href="verTarea.php?id=<?= $s['id'] ?>">Ver</a>
                         <?php if ($rol === 'admin' || $s['creator_id'] == $userId): ?>
                             <a href="controllers/TaskController.php?action=delete&id=<?= $s['id'] ?>" 

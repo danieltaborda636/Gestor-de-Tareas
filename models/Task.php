@@ -134,6 +134,15 @@ class Task {
             $sql .= " AND t.due_date <= :due_date";
             $params[':due_date'] = $filtros['due_date'];
         }
+        if (!empty($filtros['color'])) {
+            $sql .= " AND t.id IN (
+                SELECT tl.task_id
+                FROM task_labels tl
+                JOIN etiquetas e ON tl.etiqueta_id = e.id
+                WHERE e.color = :color
+            )";
+            $params[':color'] = $filtros['color'];
+        }
 
         $sql .= " ORDER BY t.created_at DESC";
 
