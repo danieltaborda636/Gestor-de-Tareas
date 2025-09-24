@@ -9,79 +9,89 @@
     --font-family: 'Arial', sans-serif;
 }
 
-/* --- FORMULARIO EN MODAL --- */
-form {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+
+/* ===== Formulario Editar Tarea ===== */
+form[action*="TaskController.php?action=update"] {
+    width: 90%;
+    max-width: 1000px;  /* Más ancho */
+    margin: 40px auto;
+    padding: 30px;
     background: var(--card-bg);
-    padding: 20px;
-    border-radius: 10px;
+    border-radius: 15px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
     font-family: var(--font-family);
     color: var(--text-color-dark);
 }
 
-h2 {
-    margin-bottom: 10px;
-    color: var(--primary-color);
-    font-size: 20px;
+/* Título */
+form[action*="TaskController.php?action=update"] h2 {
     text-align: center;
+    margin-bottom: 25px;
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary-color);
 }
 
-/* --- LABELS --- */
-label {
+/* Etiquetas */
+form[action*="TaskController.php?action=update"] label {
+    display: block;
+    margin-top: 18px;
     font-weight: bold;
-    margin-bottom: 4px;
     color: var(--text-color-dark);
 }
 
-/* --- INPUTS Y SELECT --- */
-input[type="text"],
-input[type="date"],
-textarea,
-select {
-    padding: 8px 10px;
+/* Inputs, selects y textarea */
+form[action*="TaskController.php?action=update"] input[type="text"],
+form[action*="TaskController.php?action=update"] input[type="date"],
+form[action*="TaskController.php?action=update"] textarea,
+form[action*="TaskController.php?action=update"] select {
+    width: 100%;
+    padding: 12px 14px;
+    margin-top: 6px;
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
     background: var(--secondary-color);
-    font-size: 14px;
-    font-family: var(--font-family);
-    transition: border 0.3s, box-shadow 0.3s;
+    color: var(--text-color-dark);
 }
 
-input:focus,
-textarea:focus,
-select:focus {
+form[action*="TaskController.php?action=update"] input:focus,
+form[action*="TaskController.php?action=update"] textarea:focus,
+form[action*="TaskController.php?action=update"] select:focus {
     border-color: var(--primary-color);
     outline: none;
-    box-shadow: 0 0 4px rgba(46, 123, 255, 0.4);
+    box-shadow: 0 0 8px rgba(46, 123, 255, 0.4);
 }
 
-/* --- TEXTAREA --- */
-textarea {
-    min-height: 70px;
-    resize: vertical;
+/* Checkboxes etiquetas */
+form[action*="TaskController.php?action=update"] input[type="checkbox"] {
+    margin-right: 8px;
+    transform: scale(1.2);
+    accent-color: var(--primary-color);
 }
 
-/* --- CHECKBOXES DE ETIQUETAS --- */
-input[type="checkbox"] {
-    margin-right: 5px;
-    transform: scale(1.1);
+form[action*="TaskController.php?action=update"] label span {
+    font-weight: bold;
+    margin-right: 6px;
 }
 
-/* --- BOTÓN --- */
-button {
+/* Botón */
+form[action*="TaskController.php?action=update"] button[type="submit"] {
+    width: 100%;
+    margin-top: 30px;
+    padding: 14px;
     background: var(--primary-color);
     color: var(--text-color-light);
-    padding: 10px;
     border: none;
-    border-radius: 8px;
-    font-size: 15px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: bold;
     cursor: pointer;
-    transition: background 0.3s ease;
-    margin-top: 10px;
+    transition: transform 0.2s ease, background 0.3s ease;
 }
 
-button:hover {
-    background: #1f5ed6; /* Un azul más oscuro */
+form[action*="TaskController.php?action=update"] button[type="submit"]:hover {
+    background: #1f5ed1; /* un tono más oscuro del primary */
+    transform: scale(1.03);
 }
